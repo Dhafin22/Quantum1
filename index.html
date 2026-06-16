@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="SmartCalc Pro - Kalkulator lengkap untuk kehidupan sehari-hari">
+<title>SmartCalc Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =====================================================
+   CSS VARIABLES & THEMES
+   ===================================================== */
+:root {
+  --bg0:#0B0D1C;--bg1:#111427;--bg2:#181C34;--bg3:#1F2440;--bg4:#272C4C;
+  --acc:#7C6FFF;--acc-h:#9589FF;--acc-dim:rgba(124,111,255,.13);--acc-glow:rgba(124,111,255,.35);
+  --teal:#00D0AA;--teal-h:#00ECC2;--teal-dim:rgba(0,208,170,.12);
+  --red:#FF5F7E;--red-dim:rgba(255,95,126,.12);
+  --amber:#FFA94D;--amber-dim:rgba(255,169,77,.12);
+  --t0:#EDF0FF;--t1:#B4BED8;--t2:#6E7DA0;--t3:#404D6A;
+  --brd:rgba(255,255,255,.07);--brd2:rgba(255,255,255,.14);
+  --sh:0 4px 24px rgba(0,0,0,.42);--sh-sm:0 2px 10px rgba(0,0,0,.3);
+  --r:16px;--r-sm:10px;--r-xs:6px;
+  --sb:220px;--tb:56px;--mn:62px;
+  --tr:.18s ease;--tr2:.28s ease;--tr3:.4s ease;
+  --btn-num:#1F2440;--btn-op:#2A2060;--btn-fn:#1E2C4A;--btn-eq:#7C6FFF;
+  --btn-ac:#FF5F7E;
+}
+[data-theme="light"]{
+  --bg0:#EBEBF8;--bg1:#F4F5FF;--bg2:#FFFFFF;--bg3:#EDEEFF;--bg4:#E4E5FA;
+  --acc:#6C5EF0;--acc-h:#5A4DD8;--acc-dim:rgba(108,94,240,.09);--acc-glow:rgba(108,94,240,.22);
+  --teal:#00A888;--teal-h:#008C70;--teal-dim:rgba(0,168,136,.09);
+  --red:#E0305A;--red-dim:rgba(224,48,90,.09);
+  --amber:#D4700A;--amber-dim:rgba(212,112,10,.09);
+  --t0:#1A1C35;--t1:#3A4260;--t2:#636A90;--t3:#9AA2C2;
+  --brd:rgba(0,0,0,.07);--brd2:rgba(0,0,0,.14);
+  --sh:0 4px 24px rgba(0,0,0,.09);--sh-sm:0 2px 10px rgba(0,0,0,.06);
+  --btn-num:#EDEEFF;--btn-op:#DDD8FF;--btn-fn:#D8E8FF;--btn-eq:#6C5EF0;
+  --btn-ac:#E0305A;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;-webkit-font-smoothing:antialiased}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg0);color:var(--t0);overflow:hidden;transition:background var(--tr2),color var(--tr2)}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+button{border:none;background:none;cursor:pointer;font-family:inherit;color:inherit}
+input{font-family:inherit;border:none;outline:none;background:none;color:inherit}
+a{color:inherit;text-decoration:none}
+
+/* =====================================================
+   LAYOUT
+   ===================================================== */
+#app{display:flex;height:100vh;overflow:hidden;position:relative}
+
+/* Sidebar */
+.sidebar{
+  width:var(--sb);min-width:var(--sb);height:100vh;
+  background:var(--bg1);border-right:1px solid var(--brd);
+  display:flex;flex-direction:column;padding:0;
+  transition:transform var(--tr2),width var(--tr2);
+  z-index:200;flex-shrink:0;
+}
+.sidebar.collapsed{transform:translateX(-100%);position:absolute}
+/* Untuk mobile: sidebar default tersembunyi, muncul saat class 'open' */
+@media(max-width:768px){
+  .sidebar{
+    position:fixed;
+    transform:translateX(-100%);
+  }
+  .sidebar.open{
+    transform:translateX(0);
+  }
+}
+.sb-logo{padding:18px 20px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd)}
+.sb-logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--acc),var(--teal));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;letter-spacing:-.5px;flex-shrink:0}
+.sb-logo-name{font-size:.95rem;font-weight:700;color:var(--t0)}
+.sb-logo-name span{color:var(--acc)}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.nav-btn{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r-sm);
+  font-size:.875rem;font-weight:500;color:var(--t1);cursor:pointer;
+  transition:background var(--tr),color var(--tr);width:100%;text-align:left;
+}
+.nav-btn:hover{background:var(--bg3);color:var(--t0)}
+.nav-btn.active{background:var(--acc-dim);color:var(--acc);font-weight:600}
+.nav-btn.active .nav-ico{color:var(--acc)}
+.nav-ico{font-size:1.1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-foot{padding:12px 8px;border-top:1px solid var(--brd);display:flex;gap:6px}
+.sb-foot-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:var(--r-sm);font-size:.8rem;color:var(--t2);background:var(--bg2);transition:all var(--tr)}
+.sb-foot-btn:hover{background:var(--bg3);color:var(--t0)}
+
+/* Main wrapper */
+.main-wrap{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;transition:margin var(--tr2)}
+
+/* Topbar */
+.topbar{
+  height:var(--tb);min-height:var(--tb);background:var(--bg1);border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;gap:12px;padding:0 16px;z-index:100;
+}
+.tb-menu{font-size:1.2rem;padding:6px;border-radius:var(--r-xs);color:var(--t2);display:none;transition:all var(--tr)}
+.tb-menu:hover{background:var(--bg3);color:var(--t0)}
+.tb-title{font-size:1rem;font-weight:700;color:var(--t0);flex:1}
+.tb-actions{display:flex;gap:6px}
+.icon-btn{width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--t2);background:var(--bg2);border:1px solid var(--brd);transition:all var(--tr)}
+.icon-btn:hover{background:var(--bg3);color:var(--t0);border-color:var(--brd2)}
+.icon-btn.active{background:var(--acc-dim);color:var(--acc);border-color:var(--acc)}
+
+/* Content area */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px;position:relative}
+.page{display:none;animation:fadeIn .25s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* =====================================================
+   HOME PAGE
+   ===================================================== */
+.home-hero{text-align:center;padding:30px 0 24px;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--acc-dim);border:1px solid rgba(124,111,255,.25);border-radius:50px;font-size:.78rem;font-weight:600;color:var(--acc);margin-bottom:14px}
+.hero-title{font-size:2.4rem;font-weight:800;color:var(--t0);margin-bottom:8px;line-height:1.1}
+.hero-title span{background:linear-gradient(135deg,var(--acc),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:1rem;color:var(--t2);max-width:400px;margin:0 auto}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin:24px 0}
+.feat-card{
+  background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:20px 18px;
+  cursor:pointer;transition:all var(--tr2);text-align:left;
+}
+.feat-card:hover{border-color:var(--acc);background:var(--bg3);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.feat-ico{font-size:1.8rem;margin-bottom:10px}
+.feat-name{font-size:.9rem;font-weight:700;color:var(--t0);margin-bottom:4px}
+.feat-desc{font-size:.78rem;color:var(--t2)}
+.section-title{font-size:1rem;font-weight:700;color:var(--t0);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--brd)}
+.recent-list{display:flex;flex-direction:column;gap:8px}
+.recent-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-sm);cursor:pointer;
+  transition:all var(--tr);
+}
+.recent-item:hover{border-color:var(--acc-dim);background:var(--bg3)}
+.rec-expr{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--t1);flex:1}
+.rec-result{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:600;color:var(--acc)}
+.rec-time{font-size:.72rem;color:var(--t3);margin-left:8px}
+.empty-state{text-align:center;padding:40px 20px;color:var(--t3)}
+.empty-state-ico{font-size:2.5rem;margin-bottom:10px;opacity:.5}
+.empty-state p{font-size:.875rem}
+
+/* =====================================================
+   CALCULATOR
+   ===================================================== */
+.calc-wrap{max-width:380px;margin:0 auto}
+.calc-screen{
+  background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);
+  padding:20px 20px 16px;margin-bottom:14px;
+  box-shadow:var(--sh);transition:box-shadow var(--tr2);
+  position:relative;overflow:hidden;
+}
+.calc-screen::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--acc),var(--teal));
+  transform:scaleX(0);transform-origin:left;transition:transform .4s ease;
+}
+.calc-screen.glow::before{transform:scaleX(1)}
+.calc-screen.glow{box-shadow:0 0 0 1px var(--acc),0 0 30px var(--acc-glow)}
+.calc-prev{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--t3);min-height:18px;text-align:right;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.calc-expr{
+  font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:500;
+  color:var(--t0);text-align:right;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;line-height:1.2;min-height:1.2em;
+  transition:font-size var(--tr);
+}
+.calc-expr.sm{font-size:1.4rem}
+.calc-expr.xs{font-size:1.1rem}
+.calc-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sci-btns{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+.sci-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
+
+.cbtn{
+  height:60px;border-radius:var(--r-sm);font-size:1.1rem;font-weight:600;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  background:var(--btn-num);color:var(--t0);border:1px solid var(--brd);
+  transition:all .1s ease;position:relative;overflow:hidden;user-select:none;
+}
+.cbtn::after{content:'';position:absolute;inset:0;background:white;opacity:0;transition:opacity .1s}
+.cbtn:active::after{opacity:.08}
+.cbtn:hover{transform:translateY(-1px);box-shadow:var(--sh-sm);border-color:var(--brd2)}
+.cbtn:active{transform:translateY(1px);box-shadow:none}
+.cbtn-sm{height:48px;font-size:.85rem;border-radius:var(--r-sm)}
+.cbtn.op{background:var(--btn-op);color:var(--acc)}
+.cbtn.fn{background:var(--btn-fn);color:var(--teal);font-size:.9rem}
+.cbtn.eq{background:var(--btn-eq);color:#fff;font-size:1.3rem}
+.cbtn.eq:hover{background:var(--acc-h);box-shadow:0 4px 16px var(--acc-glow)}
+.cbtn.ac{background:var(--red-dim);color:var(--red)}
+.cbtn.ac:hover{background:var(--red);color:#fff}
+.cbtn.del{background:var(--amber-dim);color:var(--amber)}
+.cbtn.zero{grid-column:span 2}
+
+.mode-row{display:flex;gap:8px;margin-bottom:12px;background:var(--bg2);padding:4px;border-radius:var(--r-sm)}
+.mode-btn{flex:1;padding:8px;border-radius:var(--r-xs);font-size:.8rem;font-weight:700;color:var(--t2);transition:all var(--tr);letter-spacing:.5px}
+.mode-btn.active{background:var(--acc);color:#fff}
+
+/* =====================================================
+   FORMULA LIBRARY
+   ===================================================== */
+.tabs-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.tab-btn{
+  padding:8px 16px;border-radius:50px;font-size:.83rem;font-weight:600;
+  color:var(--t2);border:1px solid var(--brd);background:var(--bg2);
+  cursor:pointer;transition:all var(--tr);white-space:nowrap;
+}
+.tab-btn:hover{border-color:var(--acc);color:var(--acc)}
+.tab-btn.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.f-card{
+  background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);
+  overflow:hidden;transition:all var(--tr2);
+}
+.f-card:hover{border-color:var(--brd2);box-shadow:var(--sh-sm)}
+.f-head{padding:16px 18px 12px;cursor:pointer;display:flex;align-items:flex-start;gap:12px}
+.f-icon{width:40px;height:40px;border-radius:var(--r-sm);background:var(--acc-dim);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.f-info{flex:1}
+.f-name{font-size:.95rem;font-weight:700;color:var(--t0);margin-bottom:2px}
+.f-formula{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--acc);background:var(--acc-dim);padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:4px}
+.f-desc{font-size:.78rem;color:var(--t2)}
+.f-calc{padding:0 18px 0;max-height:0;overflow:hidden;transition:max-height .35s ease,padding .35s ease}
+.f-calc.open{max-height:400px;padding:0 18px 16px}
+.f-input-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.f-input-row label{font-size:.8rem;color:var(--t2);min-width:80px}
+.f-inp{
+  flex:1;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r-xs);
+  padding:8px 12px;font-size:.9rem;color:var(--t0);transition:border-color var(--tr);
+}
+.f-inp:focus{border-color:var(--acc);outline:none}
+.f-inp-unit{font-size:.75rem;color:var(--t2);white-space:nowrap}
+.f-result{
+  background:var(--acc-dim);border:1px solid rgba(124,111,255,.2);border-radius:var(--r-sm);
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-top:10px;
+}
+.f-result-label{font-size:.8rem;color:var(--acc)}
+.f-result-val{font-family:'JetBrains Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--acc)}
+.calc-btn{
+  width:100%;padding:9px;background:var(--acc);color:#fff;border-radius:var(--r-sm);
+  font-size:.875rem;font-weight:700;margin-top:10px;transition:all var(--tr);
+}
+.calc-btn:hover{background:var(--acc-h);transform:translateY(-1px);box-shadow:0 4px 12px var(--acc-glow)}
+.calc-btn.teal{background:var(--teal);box-shadow:none}
+.calc-btn.teal:hover{background:var(--teal-h);box-shadow:0 4px 12px var(--teal-dim)}
+
+/* =====================================================
+   UNIT CONVERTER
+   ===================================================== */
+.conv-box{max-width:480px;margin:0 auto}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-bottom:24px}
+.cat-card{
+  padding:12px 10px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-sm);
+  cursor:pointer;text-align:center;transition:all var(--tr);font-size:.83rem;font-weight:600;color:var(--t1);
+}
+.cat-card:hover{border-color:var(--acc);color:var(--acc)}
+.cat-card.active{background:var(--acc-dim);border-color:var(--acc);color:var(--acc)}
+.cat-card-ico{font-size:1.4rem;margin-bottom:4px}
+.conv-ui{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:24px}
+.conv-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:16px}
+.conv-field{flex:1;display:flex;flex-direction:column;gap:6px}
+.conv-label{font-size:.78rem;font-weight:600;color:var(--t2);letter-spacing:.4px;text-transform:uppercase}
+.conv-select{
+  background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r-sm);
+  padding:10px 12px;font-size:.9rem;color:var(--t0);width:100%;appearance:none;
+  cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236E7DA0' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;
+  transition:border-color var(--tr);
+}
+.conv-select:focus{border-color:var(--acc);outline:none}
+.conv-input{
+  background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r-sm);
+  padding:12px 14px;font-size:1.1rem;font-family:'JetBrains Mono',monospace;
+  color:var(--t0);width:100%;transition:border-color var(--tr);
+}
+.conv-input:focus{border-color:var(--acc);outline:none}
+.conv-result{
+  background:var(--acc-dim);border:1px solid rgba(124,111,255,.2);border-radius:var(--r-sm);
+  padding:12px 14px;font-size:1.1rem;font-family:'JetBrains Mono',monospace;
+  color:var(--acc);width:100%;font-weight:600;min-height:48px;display:flex;align-items:center;
+}
+.swap-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:50%;background:var(--bg3);border:1px solid var(--brd);
+  margin-top:28px;color:var(--teal);font-size:1.1rem;cursor:pointer;transition:all var(--tr);flex-shrink:0;
+}
+.swap-btn:hover{background:var(--teal-dim);border-color:var(--teal);transform:rotate(180deg)}
+.conv-equal{
+  text-align:center;padding:16px;background:var(--bg3);border-radius:var(--r-sm);
+  font-size:1rem;color:var(--t1);border:1px solid var(--brd);margin-top:8px;
+}
+.conv-equal span{font-family:'JetBrains Mono',monospace;color:var(--acc);font-weight:700}
+
+/* =====================================================
+   DAILY TOOLS
+   ===================================================== */
+.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.tool-card{
+  padding:18px 16px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);
+  cursor:pointer;transition:all var(--tr2);text-align:center;
+}
+.tool-card:hover{border-color:var(--acc);transform:translateY(-2px);box-shadow:var(--sh-sm)}
+.tool-card.active{border-color:var(--acc);background:var(--acc-dim)}
+.tool-ico{font-size:2rem;margin-bottom:8px}
+.tool-name{font-size:.85rem;font-weight:700;color:var(--t0)}
+.tool-panel{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:24px;display:none}
+.tool-panel.active{display:block;animation:fadeIn .25s ease}
+.tool-title{font-size:1.1rem;font-weight:700;color:var(--t0);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:.8rem;font-weight:600;color:var(--t2);margin-bottom:6px;display:block;letter-spacing:.3px}
+.form-inp{
+  width:100%;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r-sm);
+  padding:11px 14px;font-size:.95rem;color:var(--t0);transition:border-color var(--tr);
+}
+.form-inp:focus{border-color:var(--acc);outline:none}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.result-box{
+  background:linear-gradient(135deg,var(--acc-dim),var(--teal-dim));
+  border:1px solid rgba(124,111,255,.2);border-radius:var(--r);padding:18px;margin-top:16px;
+}
+.result-main{font-size:1.6rem;font-weight:800;color:var(--acc);font-family:'JetBrains Mono',monospace;margin-bottom:4px}
+.result-sub{font-size:.82rem;color:var(--t2)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.result-cell{background:var(--bg2);border-radius:var(--r-sm);padding:12px;text-align:center}
+.result-cell-val{font-size:1.1rem;font-weight:700;color:var(--t0);font-family:'JetBrains Mono',monospace}
+.result-cell-lbl{font-size:.75rem;color:var(--t2);margin-top:2px}
+.bmi-bar{height:8px;border-radius:4px;margin:12px 0;background:linear-gradient(90deg,#3DB56E,#F6C544,#FF8C42,#FF5F5F);position:relative;overflow:visible}
+.bmi-needle{position:absolute;top:-4px;width:16px;height:16px;background:white;border:2px solid var(--t0);border-radius:50%;transform:translateX(-50%);transition:left .4s ease;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+
+/* =====================================================
+   HISTORY PANEL
+   ===================================================== */
+.hist-panel{
+  position:fixed;right:0;top:0;bottom:0;width:320px;
+  background:var(--bg1);border-left:1px solid var(--brd);
+  display:flex;flex-direction:column;z-index:300;
+  transform:translateX(100%);transition:transform var(--tr2);
+  box-shadow:-8px 0 32px rgba(0,0,0,.25);
+}
+.hist-panel.open{transform:translateX(0)}
+.hist-hdr{
+  padding:16px 18px;border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;justify-content:space-between;min-height:56px;
+}
+.hist-hdr-title{font-size:.95rem;font-weight:700;color:var(--t0)}
+.hist-hdr-actions{display:flex;gap:6px;align-items:center}
+.sm-btn{
+  padding:5px 12px;font-size:.75rem;font-weight:600;border-radius:var(--r-xs);
+  background:var(--red-dim);color:var(--red);cursor:pointer;transition:all var(--tr);
+}
+.sm-btn:hover{background:var(--red);color:#fff}
+.hist-list{flex:1;overflow-y:auto;padding:12px}
+.hist-item{
+  background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-sm);
+  padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all var(--tr);
+  display:flex;flex-direction:column;gap:2px;position:relative;
+}
+.hist-item:hover{border-color:var(--brd2);background:var(--bg3)}
+.hist-expr{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:60px}
+.hist-res{font-family:'JetBrains Mono',monospace;font-size:1rem;font-weight:700;color:var(--acc)}
+.hist-time{font-size:.7rem;color:var(--t3)}
+.hist-actions{position:absolute;right:10px;top:12px;display:flex;gap:4px}
+.hist-act-btn{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--t3);background:var(--bg3);transition:all var(--tr)}
+.hist-act-btn:hover{background:var(--acc-dim);color:var(--acc)}
+.hist-act-btn.del:hover{background:var(--red-dim);color:var(--red)}
+
+/* =====================================================
+   LEARNING PAGE
+   ===================================================== */
+.learn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.learn-card{
+  background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);
+  padding:20px;transition:all var(--tr2);
+}
+.learn-card:hover{border-color:var(--brd2);box-shadow:var(--sh-sm)}
+.learn-card-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.learn-card-ico{width:38px;height:38px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.learn-card-ico.v{background:var(--acc-dim)}
+.learn-card-ico.t{background:var(--teal-dim)}
+.learn-card-ico.a{background:var(--amber-dim)}
+.learn-card-ico.r{background:var(--red-dim)}
+.learn-title{font-size:.95rem;font-weight:700;color:var(--t0)}
+.learn-body{font-size:.84rem;color:var(--t1);line-height:1.6}
+.learn-body code{background:var(--bg3);padding:1px 5px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--teal)}
+.learn-ex{background:var(--bg3);border-radius:var(--r-sm);padding:14px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:.83rem;color:var(--t1)}
+.learn-ex-step{color:var(--t2);margin-bottom:4px}
+.learn-ex-result{color:var(--acc);font-weight:700;margin-top:6px}
+
+/* =====================================================
+   SETTINGS
+   ===================================================== */
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.setting-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:20px 22px}
+.setting-head{font-size:.95rem;font-weight:700;color:var(--t0);margin-bottom:14px}
+.setting-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--brd)}
+.setting-item:last-child{border-bottom:none}
+.setting-item-info{font-size:.875rem;color:var(--t1)}
+.setting-item-info small{display:block;font-size:.75rem;color:var(--t2);margin-top:2px}
+.toggle-group{display:flex;background:var(--bg3);border-radius:var(--r-sm);padding:3px;gap:3px}
+.toggle-opt{padding:5px 12px;border-radius:calc(var(--r-sm) - 2px);font-size:.8rem;font-weight:600;color:var(--t2);cursor:pointer;transition:all var(--tr)}
+.toggle-opt.on{background:var(--acc);color:#fff}
+.danger-btn{padding:9px 18px;background:var(--red-dim);color:var(--red);border-radius:var(--r-sm);font-size:.85rem;font-weight:700;cursor:pointer;transition:all var(--tr)}
+.danger-btn:hover{background:var(--red);color:#fff}
+
+/* =====================================================
+   TOAST
+   ===================================================== */
+#toasts{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toast{
+  padding:10px 18px;border-radius:var(--r-sm);font-size:.85rem;font-weight:600;
+  color:#fff;pointer-events:auto;animation:toastIn .3s ease forwards;
+  white-space:nowrap;box-shadow:var(--sh);backdrop-filter:blur(10px);
+}
+.toast.ok{background:rgba(0,208,170,.9)}
+.toast.err{background:rgba(255,95,126,.9)}
+.toast.info{background:rgba(124,111,255,.9)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-10px)}}
+
+/* =====================================================
+   OVERLAY
+   ===================================================== */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250;opacity:0;pointer-events:none;transition:opacity var(--tr2)}
+.overlay.on{opacity:1;pointer-events:auto}
+
+/* =====================================================
+   MOBILE NAV
+   ===================================================== */
+.mob-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;height:var(--mn);
+  background:var(--bg1);border-top:1px solid var(--brd);
+  flex-direction:row;z-index:200;padding:0 4px;
+}
+.mob-nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;font-size:.62rem;font-weight:600;color:var(--t2);cursor:pointer;transition:all var(--tr);
+  border-radius:var(--r-sm);padding:4px 0;
+}
+.mob-nav-btn:hover{color:var(--t1)}
+.mob-nav-btn.active{color:var(--acc)}
+.mob-nav-btn .mn-ico{font-size:1.2rem;line-height:1}
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+@media(max-width:768px){
+  .sidebar{position:fixed;transform:translateX(-100%);transition:transform var(--tr2)}
+  .sidebar.open{transform:translateX(0)}
+  .tb-menu{display:flex}
+  .main-wrap{margin-left:0!important}
+  .content{padding:14px 14px 80px}
+  .mob-nav{display:flex}
+  .home-grid{grid-template-columns:1fr 1fr}
+  .formula-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .hero-title{font-size:1.8rem}
+  .calc-wrap{max-width:100%}
+  .calc-expr{font-size:1.7rem}
+  .cbtn{height:54px;font-size:1rem}
+  .hist-panel{width:100%;left:0;right:0}
+  .settings-grid{grid-template-columns:1fr}
+  .tools-grid{grid-template-columns:repeat(3,1fr)}
+  #toasts{bottom:74px}
+}
+@media(max-width:400px){
+  .home-grid{grid-template-columns:1fr}
+  .tools-grid{grid-template-columns:repeat(2,1fr)}
+  .cbtn{height:48px}
+}
+</style>
+</head>
+<body data-theme="dark" data-lang="id">
+<div id="app">
+
+<!-- ===== SIDEBAR ===== -->
+<nav class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-mark">SC</div>
+    <div class="sb-logo-name">SmartCalc<span>Pro</span></div>
+  </div>
+  <div class="sb-nav" id="sb-nav">
+    <button class="nav-btn active" data-page="home" onclick="go('home')"><span class="nav-ico">⌂</span><span class="nav-lbl" data-t="n_home">Beranda</span></button>
+    <button class="nav-btn" data-page="basic" onclick="go('basic')"><span class="nav-ico">🔢</span><span class="nav-lbl" data-t="n_basic">Kalkulator Dasar</span></button>
+    <button class="nav-btn" data-page="sci" onclick="go('sci')"><span class="nav-ico">🔬</span><span class="nav-lbl" data-t="n_sci">Kalkulator Ilmiah</span></button>
+    <button class="nav-btn" data-page="formula" onclick="go('formula')"><span class="nav-ico">📐</span><span class="nav-lbl" data-t="n_formula">Perpustakaan Rumus</span></button>
+    <button class="nav-btn" data-page="converter" onclick="go('converter')"><span class="nav-ico">🔄</span><span class="nav-lbl" data-t="n_converter">Konversi Satuan</span></button>
+    <button class="nav-btn" data-page="tools" onclick="go('tools')"><span class="nav-ico">🛠️</span><span class="nav-lbl" data-t="n_tools">Alat Harian</span></button>
+    <button class="nav-btn" data-page="learn" onclick="go('learn')"><span class="nav-ico">📚</span><span class="nav-lbl" data-t="n_learn">Belajar</span></button>
+    <button class="nav-btn" data-page="settings" onclick="go('settings')"><span class="nav-ico">⚙️</span><span class="nav-lbl" data-t="n_settings">Pengaturan</span></button>
+  </div>
+  <div class="sb-foot">
+    <button class="sb-foot-btn" onclick="toggleTheme()"><span id="theme-ico">🌙</span><span data-t="s_theme">Tema</span></button>
+    <button class="sb-foot-btn" onclick="toggleLang()"><span id="lang-ico">🇮🇩</span><span id="lang-lbl">ID</span></button>
+  </div>
+</nav>
+
+<!-- ===== MAIN WRAPPER ===== -->
+<div class="main-wrap" id="main-wrap">
+  <header class="topbar">
+    <button class="tb-menu icon-btn" onclick="toggleSidebar()">☰</button>
+    <span class="tb-title" id="tb-title">Beranda</span>
+    <div class="tb-actions">
+      <button class="icon-btn" onclick="toggleHistory()" title="Riwayat" id="hist-btn">📋</button>
+      <button class="icon-btn" id="tb-theme" onclick="toggleTheme()">🌙</button>
+      <button class="icon-btn" id="tb-lang" onclick="toggleLang()">🇮🇩</button>
+    </div>
+  </header>
+
+  <main class="content" id="content">
+
+    <!-- PAGE: HOME -->
+    <div class="page active" id="pg-home">
+      <div class="home-hero">
+        <div class="hero-badge">✨ <span data-t="h_badge">Kalkulator Cerdas</span></div>
+        <h1 class="hero-title">SmartCalc <span>Pro</span></h1>
+        <p class="hero-sub" data-t="h_sub">Semua alat hitung yang kamu butuhkan dalam satu tempat</p>
+      </div>
+      <div class="home-grid" id="home-grid"></div>
+      <div class="section-title" data-t="h_recent">Perhitungan Terakhir</div>
+      <div id="home-recent"></div>
+    </div>
+
+    <!-- PAGE: BASIC CALCULATOR -->
+    <div class="page" id="pg-basic">
+      <div class="calc-wrap">
+        <div class="calc-screen" id="basic-screen">
+          <div class="calc-prev" id="basic-prev"></div>
+          <div class="calc-expr" id="basic-expr">0</div>
+        </div>
+        <div class="calc-btns" id="basic-btns"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: SCIENTIFIC -->
+    <div class="page" id="pg-sci">
+      <div class="calc-wrap">
+        <div class="mode-row">
+          <button class="mode-btn active" id="deg-btn" onclick="setAngle('deg')">DEG</button>
+          <button class="mode-btn" id="rad-btn" onclick="setAngle('rad')">RAD</button>
+        </div>
+        <div class="calc-screen" id="sci-screen">
+          <div class="calc-prev" id="sci-prev"></div>
+          <div class="calc-expr" id="sci-expr">0</div>
+        </div>
+        <div class="sci-row" id="sci-row1"></div>
+        <div class="sci-row" id="sci-row2"></div>
+        <div class="calc-btns" id="sci-btns"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: FORMULA -->
+    <div class="page" id="pg-formula">
+      <div class="tabs-wrap" id="formula-tabs"></div>
+      <div class="formula-grid" id="formula-grid"></div>
+    </div>
+
+    <!-- PAGE: CONVERTER -->
+    <div class="page" id="pg-converter">
+      <div class="conv-box">
+        <div class="cat-grid" id="conv-cats"></div>
+        <div class="conv-ui" id="conv-ui"></div>
+      </div>
+    </div>
+
+    <!-- PAGE: DAILY TOOLS -->
+    <div class="page" id="pg-tools">
+      <div class="tools-grid" id="tools-grid"></div>
+      <div id="tool-panels"></div>
+    </div>
+
+    <!-- PAGE: LEARNING -->
+    <div class="page" id="pg-learn">
+      <div class="tabs-wrap" id="learn-tabs"></div>
+      <div class="learn-grid" id="learn-grid"></div>
+    </div>
+
+    <!-- PAGE: SETTINGS -->
+    <div class="page" id="pg-settings">
+      <div class="settings-grid" id="settings-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== HISTORY PANEL ===== -->
+<div class="hist-panel" id="hist-panel">
+  <div class="hist-hdr">
+    <span class="hist-hdr-title" data-t="hist_title">Riwayat Perhitungan</span>
+    <div class="hist-hdr-actions">
+      <button class="sm-btn" onclick="clearAllHist()" data-t="hist_clear_all">Hapus Semua</button>
+      <button class="icon-btn" onclick="toggleHistory()">✕</button>
+    </div>
+  </div>
+  <div class="hist-list" id="hist-list"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div id="toasts"></div>
+
+<!-- ===== MOBILE NAV ===== -->
+<nav class="mob-nav" id="mob-nav">
+  <button class="mob-nav-btn active" data-page="home" onclick="go('home')"><span class="mn-ico">⌂</span><span data-t="n_home">Beranda</span></button>
+  <button class="mob-nav-btn" data-page="basic" onclick="go('basic')"><span class="mn-ico">🔢</span><span data-t="n_basic">Kalkulator</span></button>
+  <button class="mob-nav-btn" data-page="converter" onclick="go('converter')"><span class="mn-ico">🔄</span><span data-t="n_converter">Konversi</span></button>
+  <button class="mob-nav-btn" data-page="tools" onclick="go('tools')"><span class="mn-ico">🛠️</span><span data-t="n_tools">Alat</span></button>
+  <button class="mob-nav-btn" data-page="settings" onclick="go('settings')"><span class="mn-ico">⚙️</span>Settings</button>
+</nav>
+
+</div><!-- #app -->
+
+<script>
+/* =====================================================
+   DATA: TRANSLATIONS
+   ===================================================== */
+const TR = {
+  id:{
+    n_home:'Beranda',n_basic:'Kalkulator Dasar',n_sci:'Kalkulator Ilmiah',
+    n_formula:'Perpustakaan Rumus',n_converter:'Konversi Satuan',n_tools:'Alat Harian',
+    n_learn:'Belajar',n_settings:'Pengaturan',s_theme:'Tema',
+    h_badge:'Kalkulator Cerdas',h_sub:'Semua alat hitung yang kamu butuhkan dalam satu tempat',
+    h_recent:'Perhitungan Terakhir',
+    h_basic_desc:'Operasi aritmatika lengkap',h_sci_desc:'Fungsi trigonometri & lebih',
+    h_formula_desc:'Rumus matematika interaktif',h_conv_desc:'Konversi berbagai satuan',
+    h_tools_desc:'BMI, diskon, pajak & lainnya',h_learn_desc:'Pelajari konsep matematika',
+    hist_title:'Riwayat Perhitungan',hist_clear_all:'Hapus Semua',
+    hist_empty:'Belum ada riwayat perhitungan',
+    err_invalid:'Ekspresi tidak valid',err_div_zero:'Tidak bisa dibagi nol',
+    err_overflow:'Nilai terlalu besar',
+    copy_ok:'Disalin ke clipboard!',hist_deleted:'Riwayat dihapus',hist_cleared:'Semua riwayat dihapus',
+    fc_luas:'Luas',fc_vol:'Volume',fc_kel:'Keliling',fc_gerak:'Gerak',fc_keu:'Keuangan',fc_stat:'Statistik',
+    cat_len:'Panjang',cat_weight:'Berat',cat_temp:'Suhu',cat_time:'Waktu',
+    cat_area:'Luas',cat_vol:'Volume',cat_curr:'Mata Uang',
+    from_unit:'Dari',to_unit:'Ke',value_lbl:'Nilai',result_lbl:'Hasil',swap_lbl:'Tukar',
+    lt_ops:'Operator',lt_tips:'Tips Praktis',lt_ex:'Contoh Soal',
+    s_lang:'Bahasa',s_theme_s:'Tema Tampilan',s_angle:'Mode Sudut',s_hist:'Riwayat',
+    s_clear_hist:'Hapus Semua Riwayat',s_about:'Tentang Aplikasi',
+    s_dark:'Gelap',s_light:'Terang',s_deg:'Derajat',s_rad:'Radian',
+    s_id:'Indonesia',s_en:'English',
+    bmi_title:'Kalkulator BMI',bmi_weight:'Berat Badan (kg)',bmi_height:'Tinggi Badan (cm)',
+    bmi_calc:'Hitung BMI',bmi_result:'Hasil BMI',bmi_cat:'Kategori',
+    disc_title:'Kalkulator Diskon',disc_price:'Harga Asli (Rp)',disc_pct:'Diskon (%)',
+    disc_calc:'Hitung Diskon',disc_save:'Hemat',disc_final:'Harga Akhir',
+    tax_title:'Kalkulator Pajak',tax_price:'Harga Sebelum Pajak',tax_pct:'Pajak (%)',
+    tax_calc:'Hitung Pajak',tax_amount:'Jumlah Pajak',tax_total:'Total Bayar',
+    sav_title:'Kalkulator Tabungan',sav_prin:'Modal Awal (Rp)',sav_rate:'Bunga per Tahun (%)',
+    sav_time:'Lama Menabung (tahun)',sav_calc:'Hitung Tabungan',sav_int:'Total Bunga',sav_total:'Total Tabungan',
+    split_title:'Bagi Tagihan',split_total:'Total Tagihan',split_tip:'Tips (%)',
+    split_people:'Jumlah Orang',split_calc:'Hitung Per Orang',split_per:'Per Orang',
+    age_title:'Kalkulator Umur',age_dob:'Tanggal Lahir',age_calc:'Hitung Umur',
+    age_years:'Tahun',age_months:'Bulan',age_days:'Hari',age_total:'Total Hari',
+    calc_btn:'Hitung',reset_btn:'Reset',
+  },
+  en:{
+    n_home:'Home',n_basic:'Basic Calculator',n_sci:'Scientific Calculator',
+    n_formula:'Formula Library',n_converter:'Unit Converter',n_tools:'Daily Tools',
+    n_learn:'Learning',n_settings:'Settings',s_theme:'Theme',
+    h_badge:'Smart Calculator',h_sub:'All the calculation tools you need in one place',
+    h_recent:'Recent Calculations',
+    h_basic_desc:'Full arithmetic operations',h_sci_desc:'Trigonometry & advanced functions',
+    h_formula_desc:'Interactive math formulas',h_conv_desc:'Convert between units',
+    h_tools_desc:'BMI, discount, tax & more',h_learn_desc:'Learn math concepts',
+    hist_title:'Calculation History',hist_clear_all:'Clear All',
+    hist_empty:'No calculation history yet',
+    err_invalid:'Invalid expression',err_div_zero:'Cannot divide by zero',
+    err_overflow:'Value too large',
+    copy_ok:'Copied to clipboard!',hist_deleted:'History deleted',hist_cleared:'All history cleared',
+    fc_luas:'Area',fc_vol:'Volume',fc_kel:'Perimeter',fc_gerak:'Motion',fc_keu:'Finance',fc_stat:'Statistics',
+    cat_len:'Length',cat_weight:'Weight',cat_temp:'Temperature',cat_time:'Time',
+    cat_area:'Area',cat_vol:'Volume',cat_curr:'Currency',
+    from_unit:'From',to_unit:'To',value_lbl:'Value',result_lbl:'Result',swap_lbl:'Swap',
+    lt_ops:'Operators',lt_tips:'Practical Tips',lt_ex:'Examples',
+    s_lang:'Language',s_theme_s:'Theme',s_angle:'Angle Mode',s_hist:'History',
+    s_clear_hist:'Clear All History',s_about:'About',
+    s_dark:'Dark',s_light:'Light',s_deg:'Degree',s_rad:'Radian',
+    s_id:'Indonesia',s_en:'English',
+    bmi_title:'BMI Calculator',bmi_weight:'Weight (kg)',bmi_height:'Height (cm)',
+    bmi_calc:'Calculate BMI',bmi_result:'BMI Result',bmi_cat:'Category',
+    disc_title:'Discount Calculator',disc_price:'Original Price',disc_pct:'Discount (%)',
+    disc_calc:'Calculate Discount',disc_save:'You Save',disc_final:'Final Price',
+    tax_title:'Tax Calculator',tax_price:'Price Before Tax',tax_pct:'Tax Rate (%)',
+    tax_calc:'Calculate Tax',tax_amount:'Tax Amount',tax_total:'Total Amount',
+    sav_title:'Savings Calculator',sav_prin:'Initial Capital',sav_rate:'Annual Interest (%)',
+    sav_time:'Duration (years)',sav_calc:'Calculate Savings',sav_int:'Total Interest',sav_total:'Total Savings',
+    split_title:'Bill Splitter',split_total:'Total Bill',split_tip:'Tip (%)',
+    split_people:'Number of People',split_calc:'Calculate Per Person',split_per:'Per Person',
+    age_title:'Age Calculator',age_dob:'Date of Birth',age_calc:'Calculate Age',
+    age_years:'Years',age_months:'Months',age_days:'Days',age_total:'Total Days',
+    calc_btn:'Calculate',reset_btn:'Reset',
+  }
+};
+
+/* =====================================================
+   DATA: UNIT CONVERSIONS
+   ===================================================== */
+const UNITS = {
+  length:{
+    name:{id:'Panjang',en:'Length'},ico:'📏',
+    units:{
+      mm:{id:'Milimeter',en:'Millimeter',f:0.001},
+      cm:{id:'Sentimeter',en:'Centimeter',f:0.01},
+      m:{id:'Meter',en:'Meter',f:1},
+      km:{id:'Kilometer',en:'Kilometer',f:1000},
+      in:{id:'Inci',en:'Inch',f:0.0254},
+      ft:{id:'Kaki',en:'Foot',f:0.3048},
+      yd:{id:'Yard',en:'Yard',f:0.9144},
+      mi:{id:'Mil',en:'Mile',f:1609.344},
+    }
+  },
+  weight:{
+    name:{id:'Berat',en:'Weight'},ico:'⚖️',
+    units:{
+      mg:{id:'Miligram',en:'Milligram',f:0.001},
+      g:{id:'Gram',en:'Gram',f:1},
+      kg:{id:'Kilogram',en:'Kilogram',f:1000},
+      ton:{id:'Ton',en:'Ton',f:1000000},
+      oz:{id:'Ons',en:'Ounce',f:28.3495},
+      lb:{id:'Pon',en:'Pound',f:453.592},
+    }
+  },
+  temperature:{
+    name:{id:'Suhu',en:'Temperature'},ico:'🌡️',
+    special:true,
+    units:{
+      C:{id:'Celsius',en:'Celsius'},
+      F:{id:'Fahrenheit',en:'Fahrenheit'},
+      K:{id:'Kelvin',en:'Kelvin'},
+    }
+  },
+  time:{
+    name:{id:'Waktu',en:'Time'},ico:'⏱️',
+    units:{
+      ms:{id:'Milidetik',en:'Millisecond',f:0.001},
+      s:{id:'Detik',en:'Second',f:1},
+      min:{id:'Menit',en:'Minute',f:60},
+      h:{id:'Jam',en:'Hour',f:3600},
+      d:{id:'Hari',en:'Day',f:86400},
+      week:{id:'Minggu',en:'Week',f:604800},
+      month:{id:'Bulan',en:'Month',f:2629800},
+      year:{id:'Tahun',en:'Year',f:31557600},
+    }
+  },
+  area:{
+    name:{id:'Luas',en:'Area'},ico:'📐',
+    units:{
+      mm2:{id:'mm²',en:'mm²',f:0.000001},
+      cm2:{id:'cm²',en:'cm²',f:0.0001},
+      m2:{id:'m²',en:'m²',f:1},
+      km2:{id:'km²',en:'km²',f:1000000},
+      ha:{id:'Hektare',en:'Hectare',f:10000},
+      acre:{id:'Akre',en:'Acre',f:4046.86},
+    }
+  },
+  volume:{
+    name:{id:'Volume',en:'Volume'},ico:'🧪',
+    units:{
+      ml:{id:'Mililiter',en:'Milliliter',f:0.001},
+      cl:{id:'Sentiliter',en:'Centiliter',f:0.01},
+      L:{id:'Liter',en:'Liter',f:1},
+      m3:{id:'Meter Kubik',en:'Cubic Meter',f:1000},
+      cup:{id:'Gelas',en:'Cup',f:0.236588},
+      floz:{id:'Fl.oz',en:'Fluid Ounce',f:0.029574},
+      gallon:{id:'Galon',en:'Gallon',f:3.78541},
+    }
+  },
+  currency:{
+    name:{id:'Mata Uang',en:'Currency'},ico:'💱',
+    note:{id:'Kurs perkiraan (tidak real-time)',en:'Approximate rates (not real-time)'},
+    units:{
+      IDR:{id:'Rupiah',en:'Indonesian Rupiah',f:1},
+      USD:{id:'Dolar AS',en:'US Dollar',f:16400},
+      EUR:{id:'Euro',en:'Euro',f:17800},
+      GBP:{id:'Pound Sterling',en:'British Pound',f:20800},
+      JPY:{id:'Yen Jepang',en:'Japanese Yen',f:109},
+      SGD:{id:'Dolar Singapura',en:'Singapore Dollar',f:12100},
+      MYR:{id:'Ringgit Malaysia',en:'Malaysian Ringgit',f:3500},
+      AUD:{id:'Dolar Australia',en:'Australian Dollar',f:10600},
+    }
+  }
+};
+
+/* =====================================================
+   DATA: FORMULAS
+   ===================================================== */
+const FORMULAS = [
+  // AREA
+  {id:'sq-area',cat:'luas',ico:'🔷',
+    name:{id:'Luas Persegi',en:'Square Area'},
+    formula:'A = s²',
+    desc:{id:'Panjang sisi dikuadratkan',en:'Side length squared'},
+    vars:[{k:'s',l:{id:'Sisi (s)',en:'Side (s)'},u:'m'}],
+    calc:v=>v.s**2,rLbl:{id:'Luas',en:'Area'},rUnit:'m²'},
+  {id:'rect-area',cat:'luas',ico:'▭',
+    name:{id:'Luas Persegi Panjang',en:'Rectangle Area'},
+    formula:'A = p × l',
+    desc:{id:'Panjang dikali lebar',en:'Length times width'},
+    vars:[{k:'p',l:{id:'Panjang (p)',en:'Length (p)'},u:'m'},{k:'l',l:{id:'Lebar (l)',en:'Width (l)'},u:'m'}],
+    calc:v=>v.p*v.l,rLbl:{id:'Luas',en:'Area'},rUnit:'m²'},
+  {id:'tri-area',cat:'luas',ico:'△',
+    name:{id:'Luas Segitiga',en:'Triangle Area'},
+    formula:'A = ½ × a × t',
+    desc:{id:'Setengah alas kali tinggi',en:'Half base times height'},
+    vars:[{k:'a',l:{id:'Alas (a)',en:'Base (a)'},u:'m'},{k:'t',l:{id:'Tinggi (t)',en:'Height (t)'},u:'m'}],
+    calc:v=>0.5*v.a*v.t,rLbl:{id:'Luas',en:'Area'},rUnit:'m²'},
+  {id:'circ-area',cat:'luas',ico:'⭕',
+    name:{id:'Luas Lingkaran',en:'Circle Area'},
+    formula:'A = π × r²',
+    desc:{id:'Pi dikali jari-jari kuadrat',en:'Pi times radius squared'},
+    vars:[{k:'r',l:{id:'Jari-jari (r)',en:'Radius (r)'},u:'m'}],
+    calc:v=>Math.PI*v.r**2,rLbl:{id:'Luas',en:'Area'},rUnit:'m²'},
+  {id:'trap-area',cat:'luas',ico:'⏢',
+    name:{id:'Luas Trapesium',en:'Trapezoid Area'},
+    formula:'A = ½ × (a+b) × t',
+    desc:{id:'Setengah jumlah sisi sejajar kali tinggi',en:'Half sum of parallel sides times height'},
+    vars:[{k:'a',l:{id:'Sisi Atas (a)',en:'Top Side (a)'},u:'m'},{k:'b',l:{id:'Sisi Bawah (b)',en:'Bottom Side (b)'},u:'m'},{k:'t',l:{id:'Tinggi (t)',en:'Height (t)'},u:'m'}],
+    calc:v=>0.5*(v.a+v.b)*v.t,rLbl:{id:'Luas',en:'Area'},rUnit:'m²'},
+  // VOLUME
+  {id:'cube-vol',cat:'vol',ico:'🧊',
+    name:{id:'Volume Kubus',en:'Cube Volume'},
+    formula:'V = s³',
+    desc:{id:'Sisi dikuadratkan tiga',en:'Side cubed'},
+    vars:[{k:'s',l:{id:'Sisi (s)',en:'Side (s)'},u:'m'}],
+    calc:v=>v.s**3,rLbl:{id:'Volume',en:'Volume'},rUnit:'m³'},
+  {id:'box-vol',cat:'vol',ico:'📦',
+    name:{id:'Volume Balok',en:'Box Volume'},
+    formula:'V = p × l × t',
+    desc:{id:'Panjang kali lebar kali tinggi',en:'Length times width times height'},
+    vars:[{k:'p',l:{id:'Panjang (p)',en:'Length (p)'},u:'m'},{k:'l',l:{id:'Lebar (l)',en:'Width (l)'},u:'m'},{k:'t',l:{id:'Tinggi (t)',en:'Height (t)'},u:'m'}],
+    calc:v=>v.p*v.l*v.t,rLbl:{id:'Volume',en:'Volume'},rUnit:'m³'},
+  {id:'cyl-vol',cat:'vol',ico:'🥫',
+    name:{id:'Volume Tabung',en:'Cylinder Volume'},
+    formula:'V = π × r² × t',
+    desc:{id:'Pi kali jari-jari kuadrat kali tinggi',en:'Pi times radius squared times height'},
+    vars:[{k:'r',l:{id:'Jari-jari (r)',en:'Radius (r)'},u:'m'},{k:'t',l:{id:'Tinggi (t)',en:'Height (t)'},u:'m'}],
+    calc:v=>Math.PI*v.r**2*v.t,rLbl:{id:'Volume',en:'Volume'},rUnit:'m³'},
+  {id:'cone-vol',cat:'vol',ico:'🍦',
+    name:{id:'Volume Kerucut',en:'Cone Volume'},
+    formula:'V = ⅓ × π × r² × t',
+    desc:{id:'Sepertiga pi kali jari-jari kuadrat kali tinggi',en:'One-third pi times radius squared times height'},
+    vars:[{k:'r',l:{id:'Jari-jari (r)',en:'Radius (r)'},u:'m'},{k:'t',l:{id:'Tinggi (t)',en:'Height (t)'},u:'m'}],
+    calc:v=>(1/3)*Math.PI*v.r**2*v.t,rLbl:{id:'Volume',en:'Volume'},rUnit:'m³'},
+  {id:'sphere-vol',cat:'vol',ico:'⚽',
+    name:{id:'Volume Bola',en:'Sphere Volume'},
+    formula:'V = 4/3 × π × r³',
+    desc:{id:'Empat pertiga pi kali jari-jari pangkat tiga',en:'Four-thirds pi times radius cubed'},
+    vars:[{k:'r',l:{id:'Jari-jari (r)',en:'Radius (r)'},u:'m'}],
+    calc:v=>(4/3)*Math.PI*v.r**3,rLbl:{id:'Volume',en:'Volume'},rUnit:'m³'},
+  // PERIMETER
+  {id:'sq-perim',cat:'kel',ico:'⬛',
+    name:{id:'Keliling Persegi',en:'Square Perimeter'},
+    formula:'K = 4 × s',
+    desc:{id:'Empat kali panjang sisi',en:'Four times side length'},
+    vars:[{k:'s',l:{id:'Sisi (s)',en:'Side (s)'},u:'m'}],
+    calc:v=>4*v.s,rLbl:{id:'Keliling',en:'Perimeter'},rUnit:'m'},
+  {id:'rect-perim',cat:'kel',ico:'🔲',
+    name:{id:'Keliling Persegi Panjang',en:'Rectangle Perimeter'},
+    formula:'K = 2 × (p + l)',
+    desc:{id:'Dua kali jumlah panjang dan lebar',en:'Two times sum of length and width'},
+    vars:[{k:'p',l:{id:'Panjang (p)',en:'Length (p)'},u:'m'},{k:'l',l:{id:'Lebar (l)',en:'Width (l)'},u:'m'}],
+    calc:v=>2*(v.p+v.l),rLbl:{id:'Keliling',en:'Perimeter'},rUnit:'m'},
+  {id:'circ-perim',cat:'kel',ico:'🔵',
+    name:{id:'Keliling Lingkaran',en:'Circle Circumference'},
+    formula:'K = 2 × π × r',
+    desc:{id:'Dua kali pi kali jari-jari',en:'Two times pi times radius'},
+    vars:[{k:'r',l:{id:'Jari-jari (r)',en:'Radius (r)'},u:'m'}],
+    calc:v=>2*Math.PI*v.r,rLbl:{id:'Keliling',en:'Circumference'},rUnit:'m'},
+  // MOTION
+  {id:'speed',cat:'gerak',ico:'🚀',
+    name:{id:'Kecepatan',en:'Speed'},
+    formula:'v = s / t',
+    desc:{id:'Jarak dibagi waktu',en:'Distance divided by time'},
+    vars:[{k:'s',l:{id:'Jarak (s)',en:'Distance (s)'},u:'m'},{k:'t',l:{id:'Waktu (t)',en:'Time (t)'},u:'s'}],
+    calc:v=>v.s/v.t,rLbl:{id:'Kecepatan',en:'Speed'},rUnit:'m/s'},
+  {id:'distance',cat:'gerak',ico:'🗺️',
+    name:{id:'Jarak',en:'Distance'},
+    formula:'s = v × t',
+    desc:{id:'Kecepatan dikali waktu',en:'Speed times time'},
+    vars:[{k:'v',l:{id:'Kecepatan (v)',en:'Speed (v)'},u:'m/s'},{k:'t',l:{id:'Waktu (t)',en:'Time (t)'},u:'s'}],
+    calc:v=>v.v*v.t,rLbl:{id:'Jarak',en:'Distance'},rUnit:'m'},
+  {id:'time-calc',cat:'gerak',ico:'⏰',
+    name:{id:'Waktu Tempuh',en:'Travel Time'},
+    formula:'t = s / v',
+    desc:{id:'Jarak dibagi kecepatan',en:'Distance divided by speed'},
+    vars:[{k:'s',l:{id:'Jarak (s)',en:'Distance (s)'},u:'m'},{k:'v',l:{id:'Kecepatan (v)',en:'Speed (v)'},u:'m/s'}],
+    calc:v=>v.s/v.v,rLbl:{id:'Waktu',en:'Time'},rUnit:'s'},
+  // FINANCE
+  {id:'pct',cat:'keu',ico:'💯',
+    name:{id:'Persentase dari Nilai',en:'Percentage of Value'},
+    formula:'P% dari X = (P/100) × X',
+    desc:{id:'Hitung persentase dari suatu nilai',en:'Calculate percentage of a value'},
+    vars:[{k:'P',l:{id:'Persentase (%)',en:'Percentage (%)'},u:'%'},{k:'X',l:{id:'Nilai (X)',en:'Value (X)'},u:''}],
+    calc:v=>(v.P/100)*v.X,rLbl:{id:'Hasil',en:'Result'},rUnit:''},
+  {id:'simple-int',cat:'keu',ico:'🏦',
+    name:{id:'Bunga Sederhana',en:'Simple Interest'},
+    formula:'I = P × r × t',
+    desc:{id:'Modal kali suku bunga kali waktu',en:'Principal times rate times time'},
+    vars:[{k:'P',l:{id:'Modal (P)',en:'Principal (P)'},u:''},{k:'r',l:{id:'Bunga/tahun (r%)',en:'Rate/year (r%)'},u:'%'},{k:'t',l:{id:'Waktu (t tahun)',en:'Time (t years)'},u:'thn'}],
+    calc:v=>v.P*(v.r/100)*v.t,rLbl:{id:'Bunga',en:'Interest'},rUnit:''},
+  {id:'compound-int',cat:'keu',ico:'📈',
+    name:{id:'Bunga Majemuk',en:'Compound Interest'},
+    formula:'A = P × (1 + r/n)^(nt)',
+    desc:{id:'Total akumulasi dengan bunga berbunga',en:'Total with compound interest'},
+    vars:[{k:'P',l:{id:'Modal (P)',en:'Principal (P)'},u:''},{k:'r',l:{id:'Bunga/tahun (%)',en:'Rate/year (%)'},u:'%'},{k:'n',l:{id:'Kali/tahun (n)',en:'Times/year (n)'},u:'x'},{k:'t',l:{id:'Tahun (t)',en:'Years (t)'},u:'thn'}],
+    calc:v=>v.P*Math.pow(1+(v.r/100)/v.n,v.n*v.t),rLbl:{id:'Total',en:'Total'},rUnit:''},
+  // STATISTICS
+  {id:'mean',cat:'stat',ico:'📊',
+    name:{id:'Rata-rata (Mean)',en:'Mean (Average)'},
+    formula:'x̄ = Σx / n',
+    desc:{id:'Jumlah semua data dibagi banyaknya data. Masukkan angka dipisah koma',en:'Sum of all values divided by count. Enter numbers separated by commas'},
+    vars:[{k:'data',l:{id:'Data (pisah koma)',en:'Data (comma-separated)'},u:'',type:'text'}],
+    calc:v=>{const d=v.data.split(',').map(n=>+n.trim()).filter(n=>!isNaN(n));return d.reduce((a,b)=>a+b,0)/d.length},
+    rLbl:{id:'Rata-rata',en:'Mean'},rUnit:''},
+  {id:'range-stat',cat:'stat',ico:'↔️',
+    name:{id:'Jangkauan (Range)',en:'Range'},
+    formula:'R = Max - Min',
+    desc:{id:'Selisih nilai terbesar dan terkecil',en:'Difference between max and min values'},
+    vars:[{k:'data',l:{id:'Data (pisah koma)',en:'Data (comma-separated)'},u:'',type:'text'}],
+    calc:v=>{const d=v.data.split(',').map(n=>+n.trim()).filter(n=>!isNaN(n));return Math.max(...d)-Math.min(...d)},
+    rLbl:{id:'Jangkauan',en:'Range'},rUnit:''},
+];
+
+/* =====================================================
+   APP STATE
+   ===================================================== */
+const S = {
+  page:'home',
+  lang: localStorage.getItem('sc-lang')||'id',
+  theme: localStorage.getItem('sc-theme')||'dark',
+  angle: localStorage.getItem('sc-angle')||'deg',
+  history: JSON.parse(localStorage.getItem('sc-history')||'[]'),
+  histOpen: false,
+  sidebarOpen: false,
+  calc: { expr:'', prev:'', justEval:false },
+  convCat: 'length',
+  formulaCat: 'luas',
+  learnTab: 'ops',
+  activeTool: 'bmi',
+};
+
+/* =====================================================
+   UTILS
+   ===================================================== */
+const t = k => (TR[S.lang][k]||TR.id[k]||k);
+
+function applyTrans(){
+  document.querySelectorAll('[data-t]').forEach(el=>{
+    const key=el.getAttribute('data-t');
+    const txt=t(key);
+    if(txt) el.textContent=txt;
+  });
+}
+
+function fmtNum(n){
+  if(!isFinite(n)||isNaN(n)) return n;
+  if(Math.abs(n)>1e12||( Math.abs(n)<1e-6 && n!==0 )) return n.toExponential(6);
+  let s=parseFloat(n.toPrecision(12)).toString();
+  return s;
+}
+
+function toast(msg,type='info',dur=2500){
+  const c=document.getElementById('toasts');
+  const d=document.createElement('div');
+  d.className=`toast ${type}`;d.textContent=msg;
+  c.appendChild(d);
+  setTimeout(()=>{d.style.animation='toastOut .3s ease forwards';setTimeout(()=>d.remove(),300)},dur);
+}
+
+function copyTxt(txt){
+  navigator.clipboard.writeText(txt).then(()=>toast(t('copy_ok'),'ok')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast(t('copy_ok'),'ok');
+  });
+}
+
+function savePrefs(){
+  localStorage.setItem('sc-lang',S.lang);
+  localStorage.setItem('sc-theme',S.theme);
+  localStorage.setItem('sc-angle',S.angle);
+  localStorage.setItem('sc-history',JSON.stringify(S.history));
+}
+
+/* =====================================================
+   NAVIGATION
+   ===================================================== */
+const PAGE_TITLES = {
+  home:{id:'Beranda',en:'Home'},basic:{id:'Kalkulator Dasar',en:'Basic Calculator'},
+  sci:{id:'Kalkulator Ilmiah',en:'Scientific Calculator'},formula:{id:'Perpustakaan Rumus',en:'Formula Library'},
+  converter:{id:'Konversi Satuan',en:'Unit Converter'},tools:{id:'Alat Harian',en:'Daily Tools'},
+  learn:{id:'Belajar',en:'Learning'},settings:{id:'Pengaturan',en:'Settings'}
+};
+
+function go(page){
+  S.page=page;
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  const pg=document.getElementById('pg-'+page);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-btn,[data-page]').forEach(el=>{
+    el.classList.toggle('active',el.dataset.page===page);
+  });
+  const tit=PAGE_TITLES[page];
+  const titleEl=document.getElementById('tb-title');
+  if(titleEl && tit) titleEl.textContent=tit[S.lang]||tit.id;
+  if(window.innerWidth<=768){
+    S.sidebarOpen=false;
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('on');
+  }
+  if(page==='home') renderHome();
+  if(page==='converter') renderConverter();
+  if(page==='tools') renderTools();
+  if(page==='settings') renderSettings();
+  if(page==='learn') renderLearn();
+}
+
+function toggleSidebar(){
+  S.sidebarOpen=!S.sidebarOpen;
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  if (sidebar) {
+    if (window.innerWidth <= 768) {
+      sidebar.classList.toggle('open', S.sidebarOpen);
+    } else {
+      // Di desktop, sidebar selalu terlihat, jadi tombol tidak melakukan apa-apa
+    }
+  }
+  if (overlay) overlay.classList.toggle('on', S.sidebarOpen || S.histOpen);
+}
+
+function closeAll(){
+  S.sidebarOpen=false;S.histOpen=false;
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('hist-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('on');
+  document.getElementById('hist-btn').classList.remove('active');
+}
+
+/* =====================================================
+   THEME & LANGUAGE
+   ===================================================== */
+function applyTheme(){
+  document.body.setAttribute('data-theme',S.theme);
+  const ico=S.theme==='dark'?'🌙':'☀️';
+  ['theme-ico','tb-theme'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ico});
+  savePrefs();
+}
+function toggleTheme(){S.theme=S.theme==='dark'?'light':'dark';applyTheme();}
+
+function applyLang(){
+  document.body.setAttribute('data-lang',S.lang);
+  const ico=S.lang==='id'?'🇮🇩':'🇬🇧';
+  const lbl=S.lang.toUpperCase();
+  ['lang-ico','tb-lang'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=ico});
+  const lbl2=document.getElementById('lang-lbl');if(lbl2) lbl2.textContent=lbl;
+  applyTrans();
+  const tit=PAGE_TITLES[S.page];
+  const titleEl=document.getElementById('tb-title');
+  if(titleEl && tit) titleEl.textContent=tit[S.lang]||tit.id;
+  if(S.page==='home') renderHome();
+  if(S.page==='converter') renderConverter();
+  if(S.page==='tools') renderTools();
+  if(S.page==='settings') renderSettings();
+  if(S.page==='learn') renderLearn();
+  renderHistory();
+  if(S.page==='formula') renderFormulas();
+  savePrefs();
+}
+function toggleLang(){S.lang=S.lang==='id'?'en':'id';applyLang();}
+
+/* =====================================================
+   HISTORY
+   ===================================================== */
+function addHist(expr,result){
+  const item={expr,result:fmtNum(result),time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),ts:Date.now()};
+  S.history.unshift(item);
+  if(S.history.length>100) S.history.pop();
+  savePrefs();
+  renderHistory();
+  if(S.page==='home') renderHome();
+}
+
+function renderHistory(){
+  const el=document.getElementById('hist-list');
+  if(!el) return;
+  if(!S.history.length){
+    el.innerHTML=`<div class="empty-state"><div class="empty-state-ico">📋</div><p>${t('hist_empty')}</p></div>`;
+    return;
+  }
+  el.innerHTML=S.history.map((h,i)=>`
+    <div class="hist-item" onclick="useHist(${i})">
+      <div class="hist-expr">${h.expr}</div>
+      <div class="hist-res">= ${h.result}</div>
+      <div class="hist-time">${h.time}</div>
+      <div class="hist-actions" onclick="event.stopPropagation()">
+        <button class="hist-act-btn" onclick="copyTxt('${h.result.replace(/'/g,"\\'")}')">📋</button>
+        <button class="hist-act-btn del" onclick="delHist(${i})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function useHist(i){
+  const h=S.history[i];
+  S.calc.expr=h.result;S.calc.prev='';S.calc.justEval=false;
+  updateDisplay('basic');updateDisplay('sci');
+  go(S.page==='home'?'basic':S.page);
+}
+
+function delHist(i){
+  S.history.splice(i,1);savePrefs();renderHistory();toast(t('hist_deleted'),'info');
+  if(S.page==='home') renderHome();
+}
+function clearAllHist(){
+  S.history=[];savePrefs();renderHistory();toast(t('hist_cleared'),'info');
+  if(S.page==='home') renderHome();
+}
+
+function toggleHistory(){
+  S.histOpen=!S.histOpen;
+  document.getElementById('hist-panel').classList.toggle('open',S.histOpen);
+  document.getElementById('overlay').classList.toggle('on',S.histOpen||S.sidebarOpen);
+  document.getElementById('hist-btn').classList.toggle('active',S.histOpen);
+}
+
+/* =====================================================
+   HOME PAGE
+   ===================================================== */
+const HOME_CARDS=[
+  {page:'basic',ico:'🔢',name:'h_basic_name',desc:'h_basic_desc'},
+  {page:'sci',ico:'🔬',name:'h_sci_name',desc:'h_sci_desc'},
+  {page:'formula',ico:'📐',name:'h_formula_name',desc:'h_formula_desc'},
+  {page:'converter',ico:'🔄',name:'h_conv_name',desc:'h_conv_desc'},
+  {page:'tools',ico:'🛠️',name:'h_tools_name',desc:'h_tools_desc'},
+  {page:'learn',ico:'📚',name:'h_learn_name',desc:'h_learn_desc'},
+];
+const HOME_NAMES={
+  h_basic_name:{id:'Kalkulator Dasar',en:'Basic Calculator'},
+  h_sci_name:{id:'Kalkulator Ilmiah',en:'Scientific Calculator'},
+  h_formula_name:{id:'Rumus Matematika',en:'Math Formulas'},
+  h_conv_name:{id:'Konversi Satuan',en:'Unit Converter'},
+  h_tools_name:{id:'Alat Harian',en:'Daily Tools'},
+  h_learn_name:{id:'Belajar Matematika',en:'Learn Math'},
+};
+const HOME_DESCS={
+  h_basic_desc:{id:'Operasi aritmatika lengkap',en:'Full arithmetic operations'},
+  h_sci_desc:{id:'Fungsi trigonometri & lanjutan',en:'Trigonometry & advanced functions'},
+  h_formula_desc:{id:'Rumus interaktif dengan kalkulator',en:'Interactive formulas with calculators'},
+  h_conv_desc:{id:'Panjang, berat, suhu & lainnya',en:'Length, weight, temperature & more'},
+  h_tools_desc:{id:'BMI, diskon, pajak & lainnya',en:'BMI, discount, tax & more'},
+  h_learn_desc:{id:'Tips & contoh soal matematika',en:'Math tips & example problems'},
+};
+
+function renderHome(){
+  const grid=document.getElementById('home-grid');
+  if(grid){
+    grid.innerHTML=HOME_CARDS.map(c=>`
+      <div class="feat-card" onclick="go('${c.page}')">
+        <div class="feat-ico">${c.ico}</div>
+        <div class="feat-name">${HOME_NAMES[c.name]?.[S.lang]||HOME_NAMES[c.name]?.id||c.name}</div>
+        <div class="feat-desc">${HOME_DESCS[c.desc]?.[S.lang]||HOME_DESCS[c.desc]?.id||c.desc}</div>
+      </div>
+    `).join('');
+  }
+  const rec=document.getElementById('home-recent');
+  if(rec){
+    if(!S.history.length){
+      rec.innerHTML=`<div class="empty-state"><div class="empty-state-ico">📊</div><p>${t('hist_empty')}</p></div>`;
+    } else {
+      rec.innerHTML=`<div class="recent-list">${S.history.slice(0,5).map(h=>`
+        <div class="recent-item" onclick="go('basic')">
+          <span class="rec-expr">${h.expr}</span>
+          <span class="rec-result">= ${h.result}</span>
+          <span class="rec-time">${h.time}</span>
+        </div>
+      `).join('')}</div>`;
+    }
+  }
+}
+
+/* =====================================================
+   CALCULATOR LOGIC
+   ===================================================== */
+function factorial(n){
+  n=Math.round(n);
+  if(n<0) throw new Error('neg');
+  if(n>170) return Infinity;
+  let r=1;for(let i=2;i<=n;i++)r*=i;return r;
+}
+
+function evalExpr(raw){
+  if(!raw||!raw.trim()) throw new Error('empty');
+  let e=raw
+    .replace(/×/g,'*').replace(/÷/g,'/')
+    .replace(/π/g,'('+Math.PI+')')
+    .replace(/ℯ/g,'('+Math.E+')')
+    .replace(/\^/g,'**')
+    .replace(/√\(/g,'_sqrt(')
+    .replace(/log\(/g,'_log10(')
+    .replace(/ln\(/g,'_log(')
+    .replace(/abs\(/g,'_abs(')
+    .replace(/(\d+(?:\.\d+)?)!/g,(_,n)=>`_fact(${n})`)
+    .replace(/(\d+(?:\.\d+)?)%/g,(_,n)=>`(${n}/100)`);
+
+  const dr=S.angle==='deg'?Math.PI/180:1;
+  const _sin=x=>Math.sin(x*dr);
+  const _cos=x=>Math.cos(x*dr);
+  const _tan=x=>Math.tan(x*dr);
+  const _log10=Math.log10,_log=Math.log,_sqrt=Math.sqrt,_abs=Math.abs,_fact=factorial;
+
+  e=e.replace(/sin\(/g,'_sin(').replace(/cos\(/g,'_cos(').replace(/tan\(/g,'_tan(');
+
+  const test=e.replace(/_sin\(|_cos\(|_tan\(|_log10\(|_log\(|_sqrt\(|_abs\(|_fact\(/g,'FUNC(');
+  if(/[a-zA-Z]/.test(test.replace(/FUNC/g,''))) throw new Error('invalid');
+
+  try{
+    const fn=new Function('_sin','_cos','_tan','_log10','_log','_sqrt','_abs','_fact',`"use strict";return(${e})`);
+    const result=fn(_sin,_cos,_tan,_log10,_log,_sqrt,_abs,_fact);
+    if(result===undefined||result===null) throw new Error('null');
+    if(isNaN(result)) throw new Error('nan');
+    if(!isFinite(result)) throw new Error('inf');
+    return result;
+  }catch(err){ throw err; }
+}
+
+function smartParen(expr){
+  let open=0;
+  for(const c of expr){if(c==='(')open++;else if(c===')')open--;}
+  return open>0?')':'(';
+}
+
+function calcPress(val,screen){
+  const C=S.calc;
+  const exprEl=document.getElementById(screen+'-expr');
+  const prevEl=document.getElementById(screen+'-prev');
+  const scrEl=document.getElementById(screen+'-screen');
+
+  const pulse=()=>{if(scrEl){scrEl.classList.remove('glow');void scrEl.offsetWidth;scrEl.classList.add('glow');setTimeout(()=>scrEl.classList.remove('glow'),600);}};
+
+  if(val==='AC'){
+    C.expr='';C.prev='';C.justEval=false;
+  } else if(val==='⌫'){
+    if(C.justEval){C.expr='';C.prev='';C.justEval=false;}
+    else{
+      const tokens=['sin(','cos(','tan(','log(','ln(','abs(','√('];
+      let removed=false;
+      for(const tok of tokens){
+        if(C.expr.endsWith(tok)){C.expr=C.expr.slice(0,-tok.length);removed=true;break;}
+      }
+      if(!removed) C.expr=C.expr.slice(0,-1);
+    }
+  } else if(val==='='){
+    if(!C.expr){return;}
+    try{
+      const result=evalExpr(C.expr);
+      C.prev=C.expr+'=';
+      addHist(C.expr,result);
+      C.expr=fmtNum(result);
+      C.justEval=true;
+      pulse();
+    }catch(err){
+      C.prev=C.expr;
+      const msg=err.message==='div'?t('err_div_zero'):t('err_invalid');
+      if(exprEl){exprEl.textContent=msg;exprEl.style.color='var(--red)';setTimeout(()=>{exprEl.style.color='';updateDisplay(screen);},1500);}
+      C.expr='';C.prev='';C.justEval=false;
+      return;
+    }
+  } else if(val==='( )'){
+    if(C.justEval&&/[\d.)]$/.test(C.expr)){C.expr+='×';}
+    C.expr+=smartParen(C.expr);
+    C.justEval=false;
+  } else if(val==='±'){
+    if(C.expr&&C.expr!=='0'){
+      if(C.expr.startsWith('-')) C.expr=C.expr.slice(1);
+      else C.expr='-'+C.expr;
+    }
+  } else {
+    const isNum=/^[\d.]$/.test(val);
+    if(C.justEval){
+      if(isNum){C.expr='';C.prev='';}
+      else{C.prev='';}
+      C.justEval=false;
+    }
+    const lastChar=C.expr.slice(-1);
+    const needsMul=(lastChar&&/[\d.π)ℯ]/.test(lastChar));
+    if(needsMul&&(val==='(' || ['sin(','cos(','tan(','log(','ln(','abs(','√(','π','ℯ'].includes(val))){
+      C.expr+='×';
+    }
+    C.expr+=val;
+  }
+  updateDisplay(screen);
+}
+
+function updateDisplay(screen){
+  const C=S.calc;
+  const exprEl=document.getElementById(screen+'-expr');
+  const prevEl=document.getElementById(screen+'-prev');
+  if(!exprEl) return;
+  const disp=C.expr||'0';
+  exprEl.textContent=disp;
+  exprEl.className='calc-expr';
+  if(disp.length>18) exprEl.classList.add('xs');
+  else if(disp.length>12) exprEl.classList.add('sm');
+  if(prevEl) prevEl.textContent=C.prev;
+}
+
+function setAngle(mode){
+  S.angle=mode;savePrefs();
+  document.getElementById('deg-btn').classList.toggle('active',mode==='deg');
+  document.getElementById('rad-btn').classList.toggle('active',mode==='rad');
+}
+
+/* =====================================================
+   BASIC CALCULATOR BUTTONS
+   ===================================================== */
+function buildBasic(){
+  const grid=document.getElementById('basic-btns');
+  if(!grid) return;
+  const btns=[
+    {l:'AC',cls:'ac',v:'AC'},{l:'( )',cls:'fn',v:'( )'},{l:'%',cls:'op',v:'%'},{l:'÷',cls:'op',v:'÷'},
+    {l:'7',v:'7'},{l:'8',v:'8'},{l:'9',v:'9'},{l:'×',cls:'op',v:'×'},
+    {l:'4',v:'4'},{l:'5',v:'5'},{l:'6',v:'6'},{l:'-',cls:'op',v:'-'},
+    {l:'1',v:'1'},{l:'2',v:'2'},{l:'3',v:'3'},{l:'+',cls:'op',v:'+'},
+    {l:'⌫',cls:'del',v:'⌫'},{l:'0',cls:'zero',v:'0'},{l:'.',v:'.'},{l:'=',cls:'eq',v:'='},
+  ];
+  grid.innerHTML=btns.map(b=>`
+    <button class="cbtn ${b.cls||''}" onclick="calcPress('${b.v.replace(/'/g,"\\'")}','basic')">${b.l}</button>
+  `).join('');
+}
+
+/* =====================================================
+   SCIENTIFIC CALCULATOR BUTTONS
+   ===================================================== */
+function buildSci(){
+  const r1=document.getElementById('sci-row1');
+  const r2=document.getElementById('sci-row2');
+  const grid=document.getElementById('sci-btns');
+  if(!r1||!r2||!grid) return;
+  const row1=[
+    {l:'sin',cls:'fn',v:'sin('},{l:'cos',cls:'fn',v:'cos('},{l:'tan',cls:'fn',v:'tan('},
+    {l:'log',cls:'fn',v:'log('},{l:'ln',cls:'fn',v:'ln('},
+  ];
+  const row2=[
+    {l:'π',cls:'fn',v:'π'},{l:'ℯ',cls:'fn',v:'ℯ'},{l:'√',cls:'fn',v:'√('},
+    {l:'xʸ',cls:'fn',v:'^'},{l:'n!',cls:'fn',v:'!'},
+  ];
+  const main=[
+    {l:'AC',cls:'ac',v:'AC'},{l:'⌫',cls:'del',v:'⌫'},{l:'( )',cls:'fn',v:'( )'},{l:'÷',cls:'op',v:'÷'},
+    {l:'7',v:'7'},{l:'8',v:'8'},{l:'9',v:'9'},{l:'×',cls:'op',v:'×'},
+    {l:'4',v:'4'},{l:'5',v:'5'},{l:'6',v:'6'},{l:'-',cls:'op',v:'-'},
+    {l:'1',v:'1'},{l:'2',v:'2'},{l:'3',v:'3'},{l:'+',cls:'op',v:'+'},
+    {l:'%',cls:'fn',v:'%'},{l:'0',cls:'zero',v:'0'},{l:'.',v:'.'},{l:'=',cls:'eq',v:'='},
+  ];
+  const mkBtn=(b)=>`<button class="cbtn cbtn-sm ${b.cls||''}" onclick="sciPress('${b.v.replace(/'/g,"\\'")}','${b.l}')">${b.l}</button>`;
+  r1.innerHTML=row1.map(mkBtn).join('');
+  r2.innerHTML=row2.map(mkBtn).join('');
+  grid.innerHTML=main.map(b=>`<button class="cbtn ${b.cls||''}" onclick="sciPress('${b.v.replace(/'/g,"\\'")}','${b.l}')">${b.l}</button>`).join('');
+}
+
+function sciPress(val, label){
+  if(val==='!'){
+    const m=S.calc.expr.match(/(\d+(?:\.\d+)?)$/);
+    if(m) S.calc.expr+=val;
+    else S.calc.expr+=val;
+    S.calc.justEval=false;
+    updateDisplay('sci');
+    return;
+  }
+  calcPress(val,'sci');
+  updateDisplay('basic');
+}
+
+/* =====================================================
+   FORMULA LIBRARY
+   ===================================================== */
+function buildFormulaTabs(){
+  const tabs=document.getElementById('formula-tabs');
+  if(!tabs) return;
+  const cats=[
+    {k:'luas',id:'fc_luas'},{k:'vol',id:'fc_vol'},{k:'kel',id:'fc_kel'},
+    {k:'gerak',id:'fc_gerak'},{k:'keu',id:'fc_keu'},{k:'stat',id:'fc_stat'},
+  ];
+  tabs.innerHTML=cats.map(c=>`
+    <button class="tab-btn ${S.formulaCat===c.k?'active':''}" onclick="setFormulaCat('${c.k}')">${t(c.id)}</button>
+  `).join('');
+}
+
+function setFormulaCat(cat){
+  S.formulaCat=cat;
+  document.querySelectorAll('#formula-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  const idx=['luas','vol','kel','gerak','keu','stat'].indexOf(cat);
+  document.querySelectorAll('#formula-tabs .tab-btn')[idx]?.classList.add('active');
+  renderFormulas();
+}
+
+function renderFormulas(){
+  buildFormulaTabs();
+  const grid=document.getElementById('formula-grid');
+  if(!grid) return;
+  const filtered=FORMULAS.filter(f=>f.cat===S.formulaCat);
+  grid.innerHTML=filtered.map(f=>`
+    <div class="f-card" id="fc-${f.id}">
+      <div class="f-head" onclick="toggleFormula('${f.id}')">
+        <div class="f-icon">${f.ico}</div>
+        <div class="f-info">
+          <div class="f-name">${f.name[S.lang]||f.name.id}</div>
+          <div class="f-formula">${f.formula}</div>
+          <div class="f-desc">${f.desc[S.lang]||f.desc.id}</div>
+        </div>
+      </div>
+      <div class="f-calc" id="f-body-${f.id}">
+        ${f.vars.map(v=>`
+          <div class="f-input-row">
+            <label>${v.l[S.lang]||v.l.id}</label>
+            <input class="f-inp" type="${v.type||'number'}" id="fi-${f.id}-${v.k}" placeholder="0" ${v.type==='text'?'':'step="any"'}>
+            ${v.u?`<span class="f-inp-unit">${v.u}</span>`:''}
+          </div>
+        `).join('')}
+        <button class="calc-btn" onclick="calcFormula('${f.id}')">${t('calc_btn')}</button>
+        <div class="f-result" id="fr-${f.id}" style="display:none">
+          <span class="f-result-label">${f.rLbl[S.lang]||f.rLbl.id} ${f.rUnit?'('+f.rUnit+')':''}</span>
+          <span class="f-result-val" id="frv-${f.id}">—</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleFormula(id){
+  const body=document.getElementById('f-body-'+id);
+  if(body) body.classList.toggle('open');
+}
+
+function calcFormula(id){
+  const f=FORMULAS.find(x=>x.id===id);
+  if(!f) return;
+  const vals={};
+  for(const v of f.vars){
+    const el=document.getElementById(`fi-${id}-${v.k}`);
+    if(!el||!el.value.trim()){toast(t('err_invalid'),'err');return;}
+    vals[v.k]=v.type==='text'?el.value:+el.value;
+  }
+  try{
+    const result=f.calc(vals);
+    if(isNaN(result)||!isFinite(result)){toast(t('err_invalid'),'err');return;}
+    const rEl=document.getElementById('fr-'+id);
+    const rvEl=document.getElementById('frv-'+id);
+    if(rEl) rEl.style.display='flex';
+    if(rvEl) rvEl.textContent=fmtNum(result)+' '+(f.rUnit||'');
+    addHist(`${f.name[S.lang]||f.name.id}: ${Object.entries(vals).map(([k,v])=>k+'='+v).join(', ')}`,result);
+  }catch(e){toast(t('err_invalid'),'err');}
+}
+
+/* =====================================================
+   UNIT CONVERTER
+   ===================================================== */
+function renderConverter(){
+  const catsEl=document.getElementById('conv-cats');
+  if(catsEl){
+    catsEl.innerHTML=Object.keys(UNITS).map(k=>`
+      <div class="cat-card ${S.convCat===k?'active':''}" onclick="setConvCat('${k}')">
+        <div class="cat-card-ico">${UNITS[k].ico}</div>
+        <div>${UNITS[k].name[S.lang]||UNITS[k].name.id}</div>
+      </div>
+    `).join('');
+  }
+  buildConvUI();
+}
+
+function setConvCat(cat){
+  S.convCat=cat;
+  document.querySelectorAll('.cat-card').forEach(el=>el.classList.toggle('active',el.onclick?.toString().includes(`'${cat}'`)));
+  renderConverter();
+}
+
+function buildConvUI(){
+  const ui=document.getElementById('conv-ui');
+  if(!ui) return;
+  const cat=UNITS[S.convCat];
+  const unitKeys=Object.keys(cat.units);
+  const isTemp=cat.special;
+  const noteHtml=cat.note?`<div style="font-size:.75rem;color:var(--amber);margin-bottom:12px">⚠️ ${cat.note[S.lang]||cat.note.id}</div>`:'';
+  ui.innerHTML=`
+    ${noteHtml}
+    <div class="conv-row">
+      <div class="conv-field">
+        <span class="conv-label">${t('from_unit')}</span>
+        <select class="conv-select" id="conv-from" onchange="doConvert()">
+          ${unitKeys.map(k=>`<option value="${k}">${cat.units[k][S.lang]||cat.units[k].id} (${k})</option>`).join('')}
+        </select>
+        <input class="conv-input" type="number" id="conv-val" placeholder="0" oninput="doConvert()" value="1">
+      </div>
+      <button class="swap-btn" onclick="swapConv()">⇄</button>
+      <div class="conv-field">
+        <span class="conv-label">${t('to_unit')}</span>
+        <select class="conv-select" id="conv-to" onchange="doConvert()">
+          ${unitKeys.map((k,i)=>`<option value="${k}" ${i===1?'selected':''}>${cat.units[k][S.lang]||cat.units[k].id} (${k})</option>`).join('')}
+        </select>
+        <div class="conv-result" id="conv-result">—</div>
+      </div>
+    </div>
+    <div class="conv-equal" id="conv-equal"></div>
+  `;
+  doConvert();
+}
+
+function convertTemp(val,from,to){
+  let c;
+  if(from==='C') c=val;
+  else if(from==='F') c=(val-32)*5/9;
+  else c=val-273.15;
+  if(to==='C') return c;
+  if(to==='F') return c*9/5+32;
+  return c+273.15;
+}
+
+function doConvert(){
+  const fromEl=document.getElementById('conv-from');
+  const toEl=document.getElementById('conv-to');
+  const valEl=document.getElementById('conv-val');
+  const resEl=document.getElementById('conv-result');
+  const eqEl=document.getElementById('conv-equal');
+  if(!fromEl||!toEl||!valEl||!resEl) return;
+  const from=fromEl.value,to=toEl.value;
+  const val=parseFloat(valEl.value);
+  if(isNaN(val)){resEl.textContent='—';return;}
+  const cat=UNITS[S.convCat];
+  let result;
+  if(cat.special){
+    result=convertTemp(val,from,to);
+  } else {
+    const baseVal=val*cat.units[from].f;
+    result=baseVal/cat.units[to].f;
+  }
+  resEl.textContent=fmtNum(result);
+  const fName=cat.units[from][S.lang]||cat.units[from].id;
+  const tName=cat.units[to][S.lang]||cat.units[to].id;
+  if(eqEl) eqEl.innerHTML=`<span>${val} ${from}</span> = <span>${fmtNum(result)} ${to}</span>`;
+}
+
+function swapConv(){
+  const f=document.getElementById('conv-from');
+  const t2=document.getElementById('conv-to');
+  const v=document.getElementById('conv-val');
+  const r=document.getElementById('conv-result');
+  if(!f||!t2) return;
+  const tmp=f.value;f.value=t2.value;t2.value=tmp;
+  const rv=parseFloat(r?.textContent);
+  if(!isNaN(rv)&&r) v.value=rv;
+  doConvert();
+}
+
+/* =====================================================
+   DAILY TOOLS
+   ===================================================== */
+const TOOLS=[
+  {id:'bmi',ico:'💪',name:{id:'BMI',en:'BMI'}},
+  {id:'disc',ico:'🏷️',name:{id:'Diskon',en:'Discount'}},
+  {id:'tax',ico:'🧾',name:{id:'Pajak',en:'Tax'}},
+  {id:'savings',ico:'💰',name:{id:'Tabungan',en:'Savings'}},
+  {id:'split',ico:'🍕',name:{id:'Bagi Tagihan',en:'Split Bill'}},
+  {id:'age',ico:'🎂',name:{id:'Umur',en:'Age'}},
+];
+
+function renderTools(){
+  const grid=document.getElementById('tools-grid');
+  const panels=document.getElementById('tool-panels');
+  if(!grid||!panels) return;
+  grid.innerHTML=TOOLS.map(t2=>`
+    <div class="tool-card ${S.activeTool===t2.id?'active':''}" onclick="setTool('${t2.id}')">
+      <div class="tool-ico">${t2.ico}</div>
+      <div class="tool-name">${t2.name[S.lang]||t2.name.id}</div>
+    </div>
+  `).join('');
+  panels.innerHTML=TOOLS.map(t2=>`
+    <div class="tool-panel ${S.activeTool===t2.id?'active':''}" id="tp-${t2.id}">
+      ${buildToolHTML(t2.id)}
+    </div>
+  `).join('');
+}
+
+function setTool(id){
+  S.activeTool=id;
+  document.querySelectorAll('.tool-card').forEach(el=>el.classList.toggle('active',el.onclick?.toString().includes(`'${id}'`)));
+  document.querySelectorAll('.tool-panel').forEach(el=>el.classList.remove('active'));
+  const tp=document.getElementById('tp-'+id);
+  if(tp) tp.classList.add('active');
+}
+
+function buildToolHTML(id){
+  switch(id){
+    case 'bmi': return `
+      <div class="tool-title">💪 ${t('bmi_title')}</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">${t('bmi_weight')}</label><input class="form-inp" id="bmi-w" type="number" placeholder="70" min="1" step="0.1"></div>
+        <div class="form-group"><label class="form-label">${t('bmi_height')}</label><input class="form-inp" id="bmi-h" type="number" placeholder="170" min="1" step="0.1"></div>
+      </div>
+      <button class="calc-btn" onclick="calcBMI()">${t('bmi_calc')}</button>
+      <div id="bmi-res"></div>`;
+    case 'disc': return `
+      <div class="tool-title">🏷️ ${t('disc_title')}</div>
+      <div class="form-group"><label class="form-label">${t('disc_price')}</label><input class="form-inp" id="disc-price" type="number" placeholder="100000" step="any"></div>
+      <div class="form-group"><label class="form-label">${t('disc_pct')}</label><input class="form-inp" id="disc-pct" type="number" placeholder="20" min="0" max="100" step="0.1"></div>
+      <button class="calc-btn" onclick="calcDisc()">${t('disc_calc')}</button>
+      <div id="disc-res"></div>`;
+    case 'tax': return `
+      <div class="tool-title">🧾 ${t('tax_title')}</div>
+      <div class="form-group"><label class="form-label">${t('tax_price')}</label><input class="form-inp" id="tax-price" type="number" placeholder="100000" step="any"></div>
+      <div class="form-group"><label class="form-label">${t('tax_pct')}</label><input class="form-inp" id="tax-pct" type="number" placeholder="11" min="0" max="100" step="0.1"></div>
+      <button class="calc-btn" onclick="calcTax()">${t('tax_calc')}</button>
+      <div id="tax-res"></div>`;
+    case 'savings': return `
+      <div class="tool-title">💰 ${t('sav_title')}</div>
+      <div class="form-group"><label class="form-label">${t('sav_prin')}</label><input class="form-inp" id="sav-p" type="number" placeholder="1000000" step="any"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">${t('sav_rate')}</label><input class="form-inp" id="sav-r" type="number" placeholder="6" step="0.1"></div>
+        <div class="form-group"><label class="form-label">${t('sav_time')}</label><input class="form-inp" id="sav-t" type="number" placeholder="5" step="1" min="1"></div>
+      </div>
+      <button class="calc-btn" onclick="calcSavings()">${t('sav_calc')}</button>
+      <div id="sav-res"></div>`;
+    case 'split': return `
+      <div class="tool-title">🍕 ${t('split_title')}</div>
+      <div class="form-group"><label class="form-label">${t('split_total')}</label><input class="form-inp" id="sp-total" type="number" placeholder="250000" step="any"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">${t('split_tip')}</label><input class="form-inp" id="sp-tip" type="number" placeholder="10" min="0" step="0.5" value="0"></div>
+        <div class="form-group"><label class="form-label">${t('split_people')}</label><input class="form-inp" id="sp-ppl" type="number" placeholder="4" min="1" step="1" value="2"></div>
+      </div>
+      <button class="calc-btn" onclick="calcSplit()">${t('split_calc')}</button>
+      <div id="sp-res"></div>`;
+    case 'age': return `
+      <div class="tool-title">🎂 ${t('age_title')}</div>
+      <div class="form-group"><label class="form-label">${t('age_dob')}</label><input class="form-inp" id="age-dob" type="date"></div>
+      <button class="calc-btn" onclick="calcAge()">${t('age_calc')}</button>
+      <div id="age-res"></div>`;
+    default: return '';
+  }
+}
+
+function numFmt(n){
+  if(isNaN(n)||!isFinite(n)) return '—';
+  return new Intl.NumberFormat(S.lang==='id'?'id-ID':'en-US',{maximumFractionDigits:2}).format(n);
+}
+
+function calcBMI(){
+  const w=+document.getElementById('bmi-w')?.value;
+  const h=+document.getElementById('bmi-h')?.value;
+  if(!w||!h){toast(t('err_invalid'),'err');return;}
+  const bmi=w/((h/100)**2);
+  const cats=[
+    {max:18.5,lbl:{id:'Berat Badan Kurang',en:'Underweight'},col:'#64B5F6'},
+    {max:25,lbl:{id:'Normal',en:'Normal'},col:'#81C784'},
+    {max:30,lbl:{id:'Berat Badan Lebih',en:'Overweight'},col:'#FFB74D'},
+    {max:999,lbl:{id:'Obesitas',en:'Obese'},col:'#EF5350'},
+  ];
+  const cat=cats.find(c=>bmi<c.max)||cats[cats.length-1];
+  const pct=Math.min(Math.max((bmi-10)/30*100,0),100);
+  document.getElementById('bmi-res').innerHTML=`
+    <div class="result-box" style="margin-top:16px">
+      <div class="result-main">${bmi.toFixed(1)}</div>
+      <div class="result-sub" style="color:${cat.col};font-weight:700">${cat.lbl[S.lang]||cat.lbl.id}</div>
+      <div class="bmi-bar"><div class="bmi-needle" style="left:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--t3)">
+        <span>&lt;18.5</span><span>18.5–25</span><span>25–30</span><span>&gt;30</span>
+      </div>
+    </div>`;
+  addHist(`BMI(${w}kg,${h}cm)`,bmi);
+}
+
+function calcDisc(){
+  const price=+document.getElementById('disc-price')?.value;
+  const pct=+document.getElementById('disc-pct')?.value;
+  if(!price||pct===undefined){toast(t('err_invalid'),'err');return;}
+  const save=price*(pct/100);const final=price-save;
+  document.getElementById('disc-res').innerHTML=`
+    <div class="result-box">
+      <div class="result-main">${numFmt(final)}</div>
+      <div class="result-sub">${t('disc_final')}</div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="result-cell-val">${numFmt(save)}</div><div class="result-cell-lbl">${t('disc_save')}</div></div>
+        <div class="result-cell"><div class="result-cell-val">${pct}%</div><div class="result-cell-lbl">${t('disc_pct')}</div></div>
+      </div>
+    </div>`;
+  addHist(`Diskon ${pct}% dari ${numFmt(price)}`,final);
+}
+
+function calcTax(){
+  const price=+document.getElementById('tax-price')?.value;
+  const pct=+document.getElementById('tax-pct')?.value;
+  if(!price||pct===undefined){toast(t('err_invalid'),'err');return;}
+  const taxAmt=price*(pct/100);const total=price+taxAmt;
+  document.getElementById('tax-res').innerHTML=`
+    <div class="result-box">
+      <div class="result-main">${numFmt(total)}</div>
+      <div class="result-sub">${t('tax_total')}</div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="result-cell-val">${numFmt(taxAmt)}</div><div class="result-cell-lbl">${t('tax_amount')}</div></div>
+        <div class="result-cell"><div class="result-cell-val">${numFmt(price)}</div><div class="result-cell-lbl">${t('tax_price')}</div></div>
+      </div>
+    </div>`;
+  addHist(`Pajak ${pct}% dari ${numFmt(price)}`,total);
+}
+
+function calcSavings(){
+  const P=+document.getElementById('sav-p')?.value;
+  const r=+document.getElementById('sav-r')?.value/100;
+  const t2=+document.getElementById('sav-t')?.value;
+  if(!P||!t2){toast(t('err_invalid'),'err');return;}
+  const interest=P*r*t2;const total=P+interest;
+  document.getElementById('sav-res').innerHTML=`
+    <div class="result-box">
+      <div class="result-main">${numFmt(total)}</div>
+      <div class="result-sub">${t('sav_total')}</div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="result-cell-val">${numFmt(interest)}</div><div class="result-cell-lbl">${t('sav_int')}</div></div>
+        <div class="result-cell"><div class="result-cell-val">${numFmt(P)}</div><div class="result-cell-lbl">${t('sav_prin').replace(/\(.*?\)/,'').trim()}</div></div>
+      </div>
+    </div>`;
+  addHist(`Tabungan P=${numFmt(P)} r=${r*100}% t=${t2}thn`,total);
+}
+
+function calcSplit(){
+  const total=+document.getElementById('sp-total')?.value;
+  const tip=+document.getElementById('sp-tip')?.value||0;
+  const ppl=+document.getElementById('sp-ppl')?.value||2;
+  if(!total||ppl<1){toast(t('err_invalid'),'err');return;}
+  const tipAmt=total*(tip/100);const grandTotal=total+tipAmt;const perPerson=grandTotal/ppl;
+  document.getElementById('sp-res').innerHTML=`
+    <div class="result-box">
+      <div class="result-main">${numFmt(perPerson)}</div>
+      <div class="result-sub">${t('split_per')}</div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="result-cell-val">${numFmt(grandTotal)}</div><div class="result-cell-lbl">Total+Tips</div></div>
+        <div class="result-cell"><div class="result-cell-val">${ppl}</div><div class="result-cell-lbl">${t('split_people')}</div></div>
+      </div>
+    </div>`;
+  addHist(`Split ${numFmt(total)} / ${ppl} orang`,perPerson);
+}
+
+function calcAge(){
+  const dobStr=document.getElementById('age-dob')?.value;
+  if(!dobStr){toast(t('err_invalid'),'err');return;}
+  const dob=new Date(dobStr);const now=new Date();
+  if(dob>now){toast(t('err_invalid'),'err');return;}
+  let years=now.getFullYear()-dob.getFullYear();
+  let months=now.getMonth()-dob.getMonth();
+  let days=now.getDate()-dob.getDate();
+  if(days<0){months--;days+=new Date(now.getFullYear(),now.getMonth(),0).getDate();}
+  if(months<0){years--;months+=12;}
+  const totalDays=Math.floor((now-dob)/(1000*60*60*24));
+  document.getElementById('age-res').innerHTML=`
+    <div class="result-box">
+      <div class="result-main">${years} ${t('age_years')}</div>
+      <div class="result-sub">${months} ${t('age_months')}, ${days} ${t('age_days')}</div>
+      <div class="result-grid">
+        <div class="result-cell"><div class="result-cell-val">${numFmt(totalDays)}</div><div class="result-cell-lbl">${t('age_total')}</div></div>
+        <div class="result-cell"><div class="result-cell-val">${numFmt(totalDays*24)}</div><div class="result-cell-lbl">${S.lang==='id'?'Total Jam':'Total Hours'}</div></div>
+      </div>
+    </div>`;
+  addHist(`Umur(${dobStr})`,years+(months/12).toFixed(2));
+}
+
+/* =====================================================
+   LEARNING PAGE
+   ===================================================== */
+const LEARN_CONTENT = {
+  ops: [
+    {ico:'➕',cls:'v',title:{id:'Penjumlahan (+)',en:'Addition (+)'},
+      body:{id:'Menggabungkan dua atau lebih angka. Contoh: 5 + 3 = 8',en:'Combining two or more numbers. Example: 5 + 3 = 8'},
+      ex:{id:['5 + 3 = ?','5 + 3 = 8'],en:['5 + 3 = ?','5 + 3 = 8']}},
+    {ico:'➖',cls:'r',title:{id:'Pengurangan (-)',en:'Subtraction (-)'},
+      body:{id:'Menghitung selisih antara dua angka. Contoh: 10 - 4 = 6',en:'Finding the difference between two numbers. Example: 10 - 4 = 6'},
+      ex:{id:['10 - 4 = ?','10 - 4 = 6'],en:['10 - 4 = ?','10 - 4 = 6']}},
+    {ico:'✖️',cls:'t',title:{id:'Perkalian (×)',en:'Multiplication (×)'},
+      body:{id:'Menjumlahkan suatu angka berulang kali. 4 × 3 = 4+4+4 = 12',en:'Adding a number to itself repeatedly. 4 × 3 = 4+4+4 = 12'},
+      ex:{id:['4 × 3 = ?','4 + 4 + 4 = 12'],en:['4 × 3 = ?','4 + 4 + 4 = 12']}},
+    {ico:'➗',cls:'a',title:{id:'Pembagian (÷)',en:'Division (÷)'},
+      body:{id:'Membagi suatu angka menjadi bagian-bagian yang sama. 12 ÷ 4 = 3',en:'Splitting a number into equal parts. 12 ÷ 4 = 3'},
+      ex:{id:['12 ÷ 4 = ?','12 ÷ 4 = 3'],en:['12 ÷ 4 = ?','12 ÷ 4 = 3']}},
+    {ico:'%',cls:'v',title:{id:'Persentase (%)',en:'Percentage (%)'},
+      body:{id:'Bagian dari seratus. 25% artinya 25 dari 100, atau 0.25. Contoh: 20% dari 500 = 100',en:'A part per hundred. 25% means 25 out of 100, or 0.25. Example: 20% of 500 = 100'},
+      ex:{id:['20% dari 500 = ?','(20/100) × 500 = 100'],en:['20% of 500 = ?','(20/100) × 500 = 100']}},
+    {ico:'√',cls:'t',title:{id:'Akar Kuadrat (√)',en:'Square Root (√)'},
+      body:{id:'Mencari angka yang bila dikuadratkan menghasilkan nilai tersebut. √16 = 4 karena 4² = 16',en:'Finding a number which when squared gives the original. √16 = 4 because 4² = 16'},
+      ex:{id:['√16 = ?','4 × 4 = 16, jadi √16 = 4'],en:['√16 = ?','4 × 4 = 16, so √16 = 4']}},
+  ],
+  tips: [
+    {ico:'💡',cls:'v',title:{id:'Trik Perkalian 9',en:'Trick for Multiplying by 9'},
+      body:{id:'Untuk 9 × n, kurangi n dari 10 untuk digit satuan, dan n-1 untuk digit puluhan. Contoh: 9×7 = 63 (7-1=6, 10-7=3)',en:'For 9 × n, subtract n from 10 for the units digit, and n-1 for tens. Example: 9×7 = 63 (7-1=6, 10-7=3)'},
+      ex:{id:['9 × 7 = ?','9 × 7 = 63'],en:['9 × 7 = ?','9 × 7 = 63']}},
+    {ico:'💡',cls:'t',title:{id:'Kuadrat Angka Berakhir 5',en:'Squaring Numbers Ending in 5'},
+      body:{id:'Untuk n×n di mana n berakhir 5: ambil digit sebelum 5, kalikan dengan (digit+1), lalu tambahkan 25. Contoh: 35² = 3×4 diikuti 25 = 1225',en:'For n² where n ends in 5: take the digit before 5, multiply by (digit+1), append 25. Example: 35² = 3×4 then 25 = 1225'},
+      ex:{id:['35² = ?','3 × 4 = 12, tambah 25 → 1225'],en:['35² = ?','3 × 4 = 12, append 25 → 1225']}},
+    {ico:'💡',cls:'a',title:{id:'Mengecek Habis Dibagi 3',en:'Divisibility by 3'},
+      body:{id:'Jumlahkan semua digit. Jika hasilnya habis dibagi 3, maka bilangan itu habis dibagi 3. Contoh: 123 → 1+2+3=6, habis dibagi 3',en:'Sum all digits. If the sum is divisible by 3, so is the number. Example: 123 → 1+2+3=6, divisible by 3'},
+      ex:{id:['123 habis dibagi 3?','1+2+3 = 6 ÷ 3 = 2 ✓'],en:['Is 123 divisible by 3?','1+2+3 = 6 ÷ 3 = 2 ✓']}},
+    {ico:'💡',cls:'r',title:{id:'Persen Cepat',en:'Quick Percentages'},
+      body:{id:'10% = bagi 10. 5% = bagi 20. 1% = bagi 100. Untuk 15%: hitung 10% + setengahnya. Contoh: 15% dari 80 = 8+4 = 12',en:'10% = divide by 10. 5% = divide by 20. 1% = divide by 100. For 15%: calculate 10% + half of it. Example: 15% of 80 = 8+4 = 12'},
+      ex:{id:['15% dari 80 = ?','10% = 8, 5% = 4, total = 12'],en:['15% of 80 = ?','10% = 8, 5% = 4, total = 12']}},
+  ],
+  ex: [
+    {ico:'🏪',cls:'v',title:{id:'Menghitung Kembalian',en:'Calculating Change'},
+      body:{id:'Kamu membeli barang seharga Rp 37.500, bayar Rp 50.000. Kembalian = 50.000 - 37.500 = 12.500',en:'You buy items for $37.50 and pay $50. Change = 50 - 37.50 = 12.50'},
+      ex:{id:['50.000 - 37.500 = ?','Rp 12.500'],en:['50 - 37.50 = ?','$12.50']}},
+    {ico:'🚗',cls:'t',title:{id:'Menghitung Waktu Perjalanan',en:'Calculating Travel Time'},
+      body:{id:'Jarak 120 km dengan kecepatan 60 km/jam. Waktu = 120 ÷ 60 = 2 jam',en:'Distance 120 km at speed 60 km/h. Time = 120 ÷ 60 = 2 hours'},
+      ex:{id:['120 ÷ 60 = ?','2 jam'],en:['120 ÷ 60 = ?','2 hours']}},
+    {ico:'📐',cls:'a',title:{id:'Menghitung Luas Ruangan',en:'Calculating Room Area'},
+      body:{id:'Ruangan 5m × 4m. Luas = 5 × 4 = 20 m². Jika ubin 0.5m × 0.5m, butuh 20 ÷ 0.25 = 80 ubin',en:'Room 5m × 4m. Area = 5 × 4 = 20 m². If tiles are 0.5m × 0.5m, need 20 ÷ 0.25 = 80 tiles'},
+      ex:{id:['Luas: 5 × 4 = 20 m²','Ubin: 20 ÷ 0.25 = 80 buah'],en:['Area: 5 × 4 = 20 m²','Tiles: 20 ÷ 0.25 = 80 pieces']}},
+    {ico:'💸',cls:'r',title:{id:'Menghitung Bunga Pinjaman',en:'Calculating Loan Interest'},
+      body:{id:'Pinjam Rp 10.000.000, bunga 12%/tahun, 2 tahun. Bunga = 10jt × 0.12 × 2 = Rp 2.400.000',en:'Borrow $10,000 at 12% per year for 2 years. Interest = 10000 × 0.12 × 2 = $2,400'},
+      ex:{id:['I = 10.000.000 × 0.12 × 2','= Rp 2.400.000'],en:['I = 10000 × 0.12 × 2','= $2,400']}},
+  ]
+};
+
+function renderLearn(){
+  const tabs=document.getElementById('learn-tabs');
+  const grid=document.getElementById('learn-grid');
+  if(!tabs||!grid) return;
+  const tabDefs=[
+    {k:'ops',lbl:{id:'Operator',en:'Operators'}},
+    {k:'tips',lbl:{id:'Tips Praktis',en:'Practical Tips'}},
+    {k:'ex',lbl:{id:'Contoh Soal',en:'Examples'}},
+  ];
+  tabs.innerHTML=tabDefs.map(t2=>`
+    <button class="tab-btn ${S.learnTab===t2.k?'active':''}" onclick="setLearnTab('${t2.k}')">${t2.lbl[S.lang]||t2.lbl.id}</button>
+  `).join('');
+  const content=LEARN_CONTENT[S.learnTab]||[];
+  grid.innerHTML=content.map(c=>`
+    <div class="learn-card">
+      <div class="learn-card-head">
+        <div class="learn-card-ico ${c.cls}">${c.ico}</div>
+        <div class="learn-title">${c.title[S.lang]||c.title.id}</div>
+      </div>
+      <div class="learn-body">${c.body[S.lang]||c.body.id}</div>
+      <div class="learn-ex">
+        ${(c.ex[S.lang]||c.ex.id).map((step,i)=>`<div class="${i===((c.ex[S.lang]||c.ex.id).length-1)?'learn-ex-result':'learn-ex-step'}">${step}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function setLearnTab(k){
+  S.learnTab=k;
+  renderLearn();
+}
+
+/* =====================================================
+   SETTINGS PAGE
+   ===================================================== */
+function renderSettings(){
+  const grid=document.getElementById('settings-grid');
+  if(!grid) return;
+  grid.innerHTML=`
+    <div class="setting-card">
+      <div class="setting-head">🎨 ${t('s_theme_s')}</div>
+      <div class="setting-item">
+        <div class="setting-item-info">${t('s_theme_s')}</div>
+        <div class="toggle-group">
+          <div class="toggle-opt ${S.theme==='dark'?'on':''}" onclick="setTheme('dark')">${t('s_dark')}</div>
+          <div class="toggle-opt ${S.theme==='light'?'on':''}" onclick="setTheme('light')">${t('s_light')}</div>
+        </div>
+      </div>
+    </div>
+    <div class="setting-card">
+      <div class="setting-head">🌐 ${t('s_lang')}</div>
+      <div class="setting-item">
+        <div class="setting-item-info">${t('s_lang')}</div>
+        <div class="toggle-group">
+          <div class="toggle-opt ${S.lang==='id'?'on':''}" onclick="setLang('id')">${t('s_id')}</div>
+          <div class="toggle-opt ${S.lang==='en'?'on':''}" onclick="setLang('en')">${t('s_en')}</div>
+        </div>
+      </div>
+    </div>
+    <div class="setting-card">
+      <div class="setting-head">📐 ${t('s_angle')}</div>
+      <div class="setting-item">
+        <div class="setting-item-info">${t('s_angle')}<small>${S.lang==='id'?'Untuk fungsi trigonometri':'For trigonometric functions'}</small></div>
+        <div class="toggle-group">
+          <div class="toggle-opt ${S.angle==='deg'?'on':''}" onclick="setAngle('deg')">${t('s_deg')}</div>
+          <div class="toggle-opt ${S.angle==='rad'?'on':''}" onclick="setAngle('rad')">${t('s_rad')}</div>
+        </div>
+      </div>
+    </div>
+    <div class="setting-card">
+      <div class="setting-head">📋 ${t('s_hist')}</div>
+      <div class="setting-item">
+        <div class="setting-item-info">${t('s_clear_hist')}<small>${S.history.length} ${S.lang==='id'?'entri':'entries'}</small></div>
+        <button class="danger-btn" onclick="clearAllHist();renderSettings()">${t('s_clear_hist')}</button>
+      </div>
+    </div>
+    <div class="setting-card">
+      <div class="setting-head">ℹ️ ${t('s_about')}</div>
+      <div class="setting-item">
+        <div class="setting-item-info">SmartCalc Pro<small>${S.lang==='id'?'Kalkulator serba guna':'All-in-one calculator'}</small></div>
+        <span style="font-size:.8rem;color:var(--acc)">v2.0</span>
+      </div>
+      <div class="setting-item">
+        <div class="setting-item-info">${S.lang==='id'?'Dibuat dengan':'Made with'} ❤️</div>
+        <span style="font-size:.8rem;color:var(--t3)">2025</span>
+      </div>
+    </div>
+  `;
+}
+
+function setTheme(t){S.theme=t;applyTheme();renderSettings();}
+function setLang(l){S.lang=l;applyLang();renderSettings();}
+
+/* =====================================================
+   KEYBOARD SUPPORT
+   ===================================================== */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+  const screen=S.page==='sci'?'sci':'basic';
+  const keyMap={
+    '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9',
+    '.':'.','+':`+`,'-':'-','*':'×','/':'÷','%':'%','^':'^',
+    'Enter':'=','=':'=','Backspace':'⌫','Escape':'AC','Delete':'AC',
+    '(':'(',')':`)`
+  };
+  if(keyMap[e.key]){
+    e.preventDefault();
+    const v=keyMap[e.key];
+    if(v==='('||v===')'){
+      calcPress('( )',screen);
+    } else {
+      calcPress(v,screen);
+    }
+    updateDisplay('basic');updateDisplay('sci');
+  }
+});
+
+/* =====================================================
+   INIT
+   ===================================================== */
+function init(){
+  applyTheme();
+  applyLang();
+  
+  buildBasic();
+  buildSci();
+  
+  renderFormulas();
+  
+  renderHistory();
+  
+  renderHome();
+  
+  go('home');
+  
+  S.calc.expr='';
+  updateDisplay('basic');
+  updateDisplay('sci');
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
